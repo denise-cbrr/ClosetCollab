@@ -13,17 +13,13 @@
     <div class="navbar">
       <a href="{{ url_for('index') }}" class="navbar-brand">Closet Collab</a>
       <ul class="navbar-nav" id="navbar-nav">
-        <li><a href="{{ url_for('about') }}">About</a></li>
-        <li><a href="{{ url_for('feed') }}">Feed</a></li>
-        <li><a href="{{ url_for('exchanges') }}">Exchanges</a></li>
-        <li><a href="{{ url_for('profile') }}">Profile</a></li>
-        <li><a href="{{ url_for('login') }}">Login</a></li>
+  
       </ul>
     </div>
   </nav>
-
-  {% block content %}{% endblock %}
-
+  <main>
+    {% block main %}{% endblock %}
+  </main>
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 

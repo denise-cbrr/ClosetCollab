@@ -1,19 +1,22 @@
-from cs50 import SQL
+import sqlite3
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from helpers import apology, login_required
 
+if __name__ == "__main__":
+    app.run(debug=True)
+
 # Configure application
 app = Flask(__name__)
 
-# Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-db = SQL("sqlite:///closet.db")
+con = sqlite3.connect('closet.db')
+db = con.cursor()
 
 #users table
     #id: user's id
@@ -22,7 +25,7 @@ db = SQL("sqlite:///closet.db")
     #college (one of 14)Yale residential colleges
     #name
 
-#inquries table
+#inquiries table
     #id: inquiry_id
     #user_id: id of the poster
     #accepted: "yes" or  "no" (default is no)
@@ -47,7 +50,12 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-#Refering to login.html: username input should have the name as "username", password input should have the name as "password", should be a submitted form
+# Renders index.html, a page about our site with buttons to log in/register
+@app.route("/", methods=["GET"])
+def index():
+    return render_template("index.html")
+
+# Ensures user login is valid
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
@@ -88,12 +96,8 @@ def login():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html")
-
-@app.route("/", methods=["GET", "POST"])
-def index():
-    return render_template("index.html")
-
-'''@app.route("/logout")
+    
+@app.route("/logout")
 def logout():
     """Log user out"""
 
@@ -101,10 +105,9 @@ def logout():
     session.clear()
 
     # Redirect user to login form
-    return redirect("/about")'''
+    return redirect("/")
 
-
-'''#Referring to register.html: username=username, password=password, email=email, college=college (drop down with ResCos), name=name, should be submitted as a form
+#Referring to register.html: username=username, password=password, email=email, college=college (drop down with ResCos), name=name, should be submitted as a form
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
@@ -113,20 +116,26 @@ def register():
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+        name = request.form.get("name")
+        username = request.form.get("username")
+        email = request.form.get("email")
+        college = request.form.get("college")
+        password = generate_password_hash(request.form.get("password"))
+
         # Ensure name was submitted
-        if not request.form.get("name"):
+        if not name:
             return apology("must provide name", 400)
 
         # Ensure username was submitted
-        elif not request.form.get("username"):
+        elif not username:
             return apology("must provide username", 400)
 
         # Ensure email was submitted
-        elif not request.form.get("email"):
+        elif not email:
             return apology("must provide email,", 400)
 
         # Ensure password was submitted
-        elif not request.form.get("password"):
+        elif not password:
             return apology("must provide password", 400)
 
         # Ensure password confirmation was submitted
@@ -136,18 +145,14 @@ def register():
         elif request.form.get("password") != request.form.get("confirmation"):
             return apology("passwords do not match", 400)
 
-        name = request.form.get("name")
-        username = request.form.get("username")
-        email = request.form.get("email")
-        college = request.form.get("college")
-        password = generate_password_hash(request.form.get("password"))
-
         # Checks if user already exists, redirects to login
         try:
             db.execute(
                 "INSERT INTO users (name, username, email, college, password) VALUES (?, ?, ?, ?, ?)",
-                name, username, email, college, password)
-        except ValueError:
+                (name, username, email, college, password)
+            )
+            con.commit()
+        except sqlite3.IntegrityError:
             return apology("username already exists.", 400)
 
         # Redirect user to home page
@@ -157,13 +162,12 @@ def register():
     else:
         return render_template("register.html")
 
-#References feed.html.'''
-
+#References feed.html.
+'''
 @app.route("/feed", methods=["GET", "POST"])
 @login_required
 def feed():
     # User reached route via POST (aka they create an inquiry)
     #if request.method == "POST":
 
-    return render_template("feed.html")
-
+    return render_template("feed.html")'''
