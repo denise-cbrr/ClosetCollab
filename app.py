@@ -1,28 +1,15 @@
 import sqlite3
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, g
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-
 from helpers import apology, login_required
 
-if __name__ == "__main__":
-    app.run(debug=True)
-
-# Configure application
-app = Flask(__name__)
-
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
-
-con = sqlite3.connect('closet.db')
-db = con.cursor()
-
+#Tables:
 #users table
     #id: user's id
-    #username
+    #username (unique)
     #password: hashed
-    #college (one of 14)Yale residential colleges
+    #college (one of 14) Yale residential colleges
     #name
 
 #inquiries table
@@ -39,8 +26,31 @@ db = con.cursor()
 
 #interactions
     #inquiry_id
-    #status: text
+    #status: text (delivered, received, etc.)
     #lender_id: user_id of lender
+
+# Configure application
+app = Flask(__name__)
+
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
+
+# Function to get the database connection
+def get_db():
+    """Opens a new database connection if one doesn't exist"""
+    if 'db' not in g:
+        g.db = sqlite3.connect('closet.db')
+        g.db.row_factory = sqlite3.Row  # Allows access to columns by name
+    return g.db
+
+# Function to close the database connection
+@app.teardown_appcontext
+def close_db(exception):
+    """Closes the database connection at the end of the request"""
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
 @app.after_request
 def after_request(response):
@@ -77,18 +87,19 @@ def login():
             return apology("must provide password", 400)
 
         # Query users database to check if someone has that username
+        db = get_db()  # Use the database connection from g
+
+        # fetchone fetches the first row of the results
         person = db.execute(
-            "SELECT * FROM users WHERE username = ?", username
-        )
+            "SELECT * FROM users WHERE username = ?", (username,)
+        ).fetchone()
 
         # Ensure username only belongs to one user and password is correct
-        if len(person) != 1 or not check_password_hash(
-            person[0]["password"], password
-        ):
+        if person is None or not check_password_hash(person["password"], password):
             return apology("invalid username and/or password", 400)
 
         # Remember which user has logged in
-        session["user_id"] = person[0]["id"]
+        session["user_id"] = person["id"]
 
         # Redirect user to feed page
         return redirect("/feed")
@@ -107,13 +118,13 @@ def logout():
     # Redirect user to login form
     return redirect("/")
 
-#Referring to register.html: username=username, password=password, email=email, college=college (drop down with ResCos), name=name, should be submitted as a form
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
+
     # Forget any user_id
     session.clear()
-
+    
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         name = request.form.get("name")
@@ -126,48 +137,57 @@ def register():
         if not name:
             return apology("must provide name", 400)
 
+        # Ensure email was submitted
+        elif not email:
+            return apology("must provide email,", 400)
+        
         # Ensure username was submitted
         elif not username:
             return apology("must provide username", 400)
 
-        # Ensure email was submitted
-        elif not email:
-            return apology("must provide email,", 400)
-
         # Ensure password was submitted
-        elif not password:
+        elif not request.form.get("password"):
             return apology("must provide password", 400)
 
         # Ensure password confirmation was submitted
         elif not request.form.get("confirmation"):
-            return apology("must provide password again", 400)
+            return apology("must validate password", 400)
 
+        # Checks that both password inputs are the same
         elif request.form.get("password") != request.form.get("confirmation"):
             return apology("passwords do not match", 400)
-
-        # Checks if user already exists, redirects to login
+        
+        # Checks if user's username is valid (unique); if it is, inserts a new user entry into user table
         try:
+            db = get_db()  # Use the database connection from g
+
             db.execute(
-                "INSERT INTO users (name, username, email, college, password) VALUES (?, ?, ?, ?, ?)",
-                (name, username, email, college, password)
+                "INSERT INTO users (name, email, username, college, password) VALUES (?, ?, ?, ?, ?)",
+                (name, email, username, college, password)
             )
-            con.commit()
+            db.commit()
+
         except sqlite3.IntegrityError:
             return apology("username already exists.", 400)
 
-        # Redirect user to home page
+        # Redirect user to index page
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("register.html")
-
-#References feed.html.
-'''
-@app.route("/feed", methods=["GET", "POST"])
-@login_required
+    
+@app.route("/feed")
 def feed():
-    # User reached route via POST (aka they create an inquiry)
-    #if request.method == "POST":
+    #placeholder
+    return render_template("feed.html")
 
-    return render_template("feed.html")'''
+@app.route("/profile")
+def profile():
+    #placeholder
+    return render_template("profile.html")
+
+@app.route("/interactions")
+def interactions():
+    #placeholder
+    return render_template("interactions.html")
