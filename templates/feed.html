@@ -1,3 +1,4 @@
+{% extends "layout.html" %}
 {% block title %}
     Feed
 {% endblock %}
@@ -5,25 +6,54 @@
 {% block main %}
     <h1>Feed</h1>
     <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-    Launch demo modal
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Launch demo modal
     </button>
-  
+    
     <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
             <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-            ...
+                <form action="/feed" method="post">
+                    <div class="mb-3">
+                        <input class="form-control mx-auto w-auto" name="request" placeholder="Explain your request" type="text">
+                    </div>
+                    <select name="style" class="form-select" aria-label="Default select example">
+                        <option disabled selected value="">Please attach any tags that are applicable!</option>
+                            <option value="Formal">Formal</option>
+                            <option value="Casual">Casual</option>
+                            <option value="Streetwear">Streetwear</option>
+                            <option value="Athleisure">Athleisure</option>
+                    </select>
+                    <select name="size" class="form-select" aria-label="Default select example">
+                        <option disabled selected value="">What size?</option>
+                            <option value="XS">XS</option>
+                            <option value="S">S</option>
+                            <option value="M">M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                    </select>
+                    <select name="item" class="form-select" aria-label="Default select example">
+                        <option disabled selected value="">What type of clothing?</option>
+                            <option value="shirt">Shirt</option>
+                            <option value="jacket">Jacket</option>
+                    </select>
+                    <div class="mb-3">
+                        <input class="form-control mx-auto w-auto" name="request" placeholder="Explain your request" type="text">
+                    </div>
+                    <div class="mb-3">
+                        <input class="form-control mx-auto w-auto" name="expirationDate" placeholder="Expiration Date: " type="datetime-local">
+                    </div>
+                    <button class="btn btn-primary" type="submit">Submit Request</button>
+                </form>
             </div>
             <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             <button type="button" class="btn btn-primary">Save changes</button>
             </div>
         </div>
