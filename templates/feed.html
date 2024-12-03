@@ -5,9 +5,33 @@
 
 {% block main %}
     <h1>Feed</h1>
-    <!-- Button trigger modal -->
+    <div class="mb-3">
+        <select name="styleFilter" class="form-select" aria-label="Default select example">
+            <option disabled selected value="">Filter by Style</option>
+                <option value="Formal">Formal</option>
+                <option value="Athleisure">Athleisure</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <select name="sizeFilter" class="form-select" aria-label="Default select example">
+            <option disabled selected value="">Filter by Size</option>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <select name="typeFilter" class="form-select" aria-label="Default select example">
+            <option disabled selected value="">Filter by Type</option>
+                <option value="Shirt">Shirt</option>
+                <option value="Jacket">Jacket</option>
+        </select>
+    </div>
+
+    
+
+    <!-- Button trigger modal (just something random from bootstrap) -->
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        Launch demo modal
+        What do you want to borrow?
     </button>
     
     <!-- Modal -->
@@ -21,16 +45,16 @@
             <div class="modal-body">
                 <form action="/feed" method="post">
                     <div class="mb-3">
-                        <input class="form-control mx-auto w-auto" name="request" placeholder="Explain your request" type="text">
+                        <input class="form-control mx-auto w-auto" name="request" placeholder="Explain your request" type="text" required>
                     </div>
-                    <select name="style" class="form-select" aria-label="Default select example">
+                    <select name="style" class="form-select" aria-label="Default select example" multiple>
                         <option disabled selected value="">Please attach any tags that are applicable!</option>
                             <option value="Formal">Formal</option>
                             <option value="Casual">Casual</option>
                             <option value="Streetwear">Streetwear</option>
                             <option value="Athleisure">Athleisure</option>
                     </select>
-                    <select name="size" class="form-select" aria-label="Default select example">
+                    <select name="size" class="form-select" aria-label="Default select example" required>
                         <option disabled selected value="">What size?</option>
                             <option value="XS">XS</option>
                             <option value="S">S</option>
@@ -40,12 +64,9 @@
                     </select>
                     <select name="item" class="form-select" aria-label="Default select example">
                         <option disabled selected value="">What type of clothing?</option>
-                            <option value="shirt">Shirt</option>
-                            <option value="jacket">Jacket</option>
+                            <option value="Shirt">Shirt</option>
+                            <option value="Jacket">Jacket</option>
                     </select>
-                    <div class="mb-3">
-                        <input class="form-control mx-auto w-auto" name="request" placeholder="Explain your request" type="text">
-                    </div>
                     <div class="mb-3">
                         <input class="form-control mx-auto w-auto" name="expirationDate" placeholder="Expiration Date: " type="datetime-local">
                     </div>
