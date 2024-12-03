@@ -208,13 +208,13 @@ def feed():
         db.commit()
         return render_template("feed.html")
     else:
+        tags = request.form.getlist("style")
+        tag_count = len(tags)
+        tag_list = ','.join(f"'{tag}'" for tag in tags)
+        
         db = get_db()
-        #db.execute(
-            #"SELECT * FROM inquiries JOIN tags ON inquiries.id = tags.inquiry_id WHERE tag = ?"
-            # SELECT * FROM inquiries WHERE id IN 
-            # (SELECT inquiry_id FROM tags WHERE tags = ? AND inquiry_id = 
-            # (SELECT inquiry_id FROM tags WHERE tags = ?))
-        #)
+        db.execute("SELECT ")
+
         return render_template("feed.html")
 
 @app.route("/profile")
