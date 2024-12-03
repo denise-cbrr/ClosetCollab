@@ -124,7 +124,6 @@ def register():
 
     # Forget any user_id
     session.clear()
-    
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         name = request.form.get("name")
@@ -181,8 +180,42 @@ def register():
 def feed():
      # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+        userRequest = request.form.get("userRequest")
+        tags_list = request.form.getlist("style")
+        size = request.form.get("size")
+        item = request.form.get("item")
+        expirationDate = request.form.get("expirationDate")
+        curUser = session["user_id"]
         
-    return render_template("feed.html")
+        db = get_db()  # Use the database connection from g
+        db.execute(
+            "INSERT INTO inquiries (request, exp_date, user_id) VALUES (?, ?, ?)",
+            (userRequest, expirationDate, curUser)
+        )
+        
+        print(size)
+        print(tags_list)
+        inquiry_id = db.execute(
+            "SELECT id FROM inquiries ORDER BY id DESC LIMIT 1"
+        ).fetchone()[0] 
+
+        for tag in tags_list:
+            db.execute(
+                "INSERT INTO tags (inquiry_id, tag) VALUES (?, ?)",
+                (inquiry_id, tag)
+            )
+
+        db.commit()
+        return render_template("feed.html")
+    else:
+        db = get_db()
+        #db.execute(
+            #"SELECT * FROM inquiries JOIN tags ON inquiries.id = tags.inquiry_id WHERE tag = ?"
+            # SELECT * FROM inquiries WHERE id IN 
+            # (SELECT inquiry_id FROM tags WHERE tags = ? AND inquiry_id = 
+            # (SELECT inquiry_id FROM tags WHERE tags = ?))
+        #)
+        return render_template("feed.html")
 
 @app.route("/profile")
 def profile():

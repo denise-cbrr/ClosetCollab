@@ -45,7 +45,7 @@
             <div class="modal-body">
                 <form action="/feed" method="post">
                     <div class="mb-3">
-                        <input class="form-control mx-auto w-auto" name="request" placeholder="Explain your request" type="text" required>
+                        <input class="form-control mx-auto w-auto" name="userRequest" placeholder="Explain your request" type="text" required>
                     </div>
                     <select name="style" class="form-select" aria-label="Default select example" multiple>
                         <option disabled selected value="">Please attach any tags that are applicable!</option>
@@ -68,7 +68,7 @@
                             <option value="Jacket">Jacket</option>
                     </select>
                     <div class="mb-3">
-                        <input class="form-control mx-auto w-auto" name="expirationDate" placeholder="Expiration Date: " type="datetime-local">
+                        <input class="form-control mx-auto w-auto" name="expirationDate" placeholder="Expiration Date: " type="date">
                     </div>
                     <button class="btn btn-primary" type="submit">Submit Request</button>
                 </form>
