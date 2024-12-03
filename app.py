@@ -177,9 +177,11 @@ def register():
     else:
         return render_template("register.html")
     
-@app.route("/feed")
+@app.route("/feed", methods=["GET", "POST"])
 def feed():
-    #placeholder
+     # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        
     return render_template("feed.html")
 
 @app.route("/profile")
