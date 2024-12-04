@@ -181,10 +181,9 @@ def feed():
      # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         userRequest = request.form.get("userRequest")
-        tags_list = request.form.getlist("style")
-        tags_list.extend(filter(None, [request.form.get("size"), request.form.get("item")]))
-        # size = request.form.get("size")
-        # item = request.form.get("item")
+        tags_list = request.form.getlist("style")   # Creates a list from the style tags
+        # Extends list to include size and item, puts "None" if item left blank
+        tags_list.extend(filter(None, [request.form.get("size"), request.form.get("item")]))    
         expirationDate = request.form.get("expirationDate")
         curUser = session["user_id"]
         
@@ -205,15 +204,28 @@ def feed():
                 "INSERT INTO tags (inquiry_id, tag) VALUES (?, ?)",
                 (inquiry_id, tag)
             )
-        #db.execute("INSERT INTO tags (inquiry_id, tag) V")
         db.commit()
         return render_template("feed.html")
     else:
-        tags = request.form.getlist("style")
+        tags = request.args.getlist("styleFilter")
+        tags.extend(filter(None, [request.args.get("sizeFilter"), request.args.get("typeFilter")]))
         tag_count = len(tags)
-        tag_list = ','.join(f"'{tag}'" for tag in tags)
+        placeholders = ', '.join(['?'] * len(tags))
+        
+        # placeholders will dynamically create the right amount of ? for each filter
+        # IN () will return the inquiry_id of any inquiry with at least one of those tags
+        # GROUP BY will group the inquiries by inqury_id so we deal with one row only
+        # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
+        query = f"""SELECT i.* FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ?"""
+        
+        db = get_db()
+        results = db.execute(query, tags + [tag_count]).fetchall()
 
-        return render_template("feed.html")
+        db.commit()
+       
+        # db.execute(f"SELECT i.*FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tags IN ({tag_list}) GROUP BY i.id HAVING COUNT(DISTINCT t.tags) = {tag_count};")
+        # Used code is better because it parametrizes and protects from SQL injection attacks
+        return render_template("feed.html", results=results)
 
 @app.route("/profile")
 def profile():

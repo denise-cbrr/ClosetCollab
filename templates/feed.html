@@ -5,29 +5,54 @@
 
 {% block main %}
     <h1>Feed</h1>
-    <div class="mb-3">
-        <select name="styleFilter" class="form-select" aria-label="Default select example">
-            <option disabled selected value="">Filter by Style</option>
-                <option value="Formal">Formal</option>
-                <option value="Athleisure">Athleisure</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <select name="sizeFilter" class="form-select" aria-label="Default select example">
-            <option disabled selected value="">Filter by Size</option>
-                <option value="XS">XS</option>
-                <option value="S">S</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <select name="typeFilter" class="form-select" aria-label="Default select example">
-            <option disabled selected value="">Filter by Type</option>
-                <option value="Shirt">Shirt</option>
-                <option value="Jacket">Jacket</option>
-        </select>
-    </div>
-
+    <form action="/feed" method="GET">
+        <div class="mb-3">
+            <select name="styleFilter" class="form-select" aria-label="Default select example">
+                <option disabled selected value="">Filter by Style</option>
+                    <option value="Formal">Formal</option>
+                    <option value="Casual">Casual</option>
+                    <option value="Streetwear">Streetwear</option>
+                    <option value="Athleisure">Athleisure</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <select name="sizeFilter" class="form-select" aria-label="Default select example">
+                <option disabled selected value="">Filter by Size</option>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <select name="typeFilter" class="form-select" aria-label="Default select example">
+                <option disabled selected value="">Filter by Type</option>
+                    <option value="Shirt">Shirt</option>
+                    <option value="Jacket">Jacket</option>
+            </select>
+        </div>
+        <button type="submit">Apply Filters</button>
+    </form>
     
+    <div class="mb-3">
+        <table>
+            <thead>
+                <tr>
+                    <th>Inquiries</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{result.id}}</td>
+                        <td>{{result.request}}</td>
+                        <td>{{result.exp_date}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <!-- Button trigger modal (just something random from bootstrap) -->
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
