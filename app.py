@@ -182,8 +182,9 @@ def feed():
     if request.method == "POST":
         userRequest = request.form.get("userRequest")
         tags_list = request.form.getlist("style")
-        size = request.form.get("size")
-        item = request.form.get("item")
+        tags_list.extend(filter(None, [request.form.get("size"), request.form.get("item")]))
+        # size = request.form.get("size")
+        # item = request.form.get("item")
         expirationDate = request.form.get("expirationDate")
         curUser = session["user_id"]
         
@@ -193,8 +194,8 @@ def feed():
             (userRequest, expirationDate, curUser)
         )
         
-        print(size)
-        print(tags_list)
+        # print(size)
+        # print(tags_list)
         inquiry_id = db.execute(
             "SELECT id FROM inquiries ORDER BY id DESC LIMIT 1"
         ).fetchone()[0] 
@@ -204,16 +205,13 @@ def feed():
                 "INSERT INTO tags (inquiry_id, tag) VALUES (?, ?)",
                 (inquiry_id, tag)
             )
-
+        #db.execute("INSERT INTO tags (inquiry_id, tag) V")
         db.commit()
         return render_template("feed.html")
     else:
         tags = request.form.getlist("style")
         tag_count = len(tags)
         tag_list = ','.join(f"'{tag}'" for tag in tags)
-        
-        db = get_db()
-        db.execute("SELECT ")
 
         return render_template("feed.html")
 
