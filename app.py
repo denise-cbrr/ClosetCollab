@@ -206,25 +206,46 @@ def feed():
             )
         db.commit()
         return render_template("feed.html")
+    
     else:
         tags = request.args.getlist("styleFilter")
-        tags.extend(filter(None, [request.args.get("sizeFilter"), request.args.get("typeFilter")]))
-        tag_count = len(tags)
-        placeholders = ', '.join(['?'] * len(tags))
+        size_filter = request.args.get("sizeFilter")
+        type_filter = request.args.get("typeFilter")
         
-        # placeholders will dynamically create the right amount of ? for each filter
-        # IN () will return the inquiry_id of any inquiry with at least one of those tags
-        # GROUP BY will group the inquiries by inqury_id so we deal with one row only
-        # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
-        query = f"""SELECT i.* FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ?"""
-        
-        db = get_db()
-        results = db.execute(query, tags + [tag_count]).fetchall()
+        # creates the filtered feed if at least one filter is used
+        if tags or size_filter or type_filter:
+            
+            # if there is a size filter, add to the tags list
+            if size_filter:
+                tags.append(size_filter)
+                
+            # if there is a type filter, add to the tags list
+            if type_filter:
+                tags.append(type_filter)
+                
+            tag_count = len(tags)
+            placeholders = ', '.join(['?'] * len(tags))
+            
+            # placeholders will dynamically create the right amount of ? for each filter
+            # IN () will return the inquiry_id of any inquiry with at least one of those tags
+            # GROUP BY will group the inquiries by inqury_id so we deal with one row only
+            # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
+            query = f"""SELECT i.* FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ?"""
+            
+            db = get_db()
+            results = db.execute(query, tags + [tag_count]).fetchall()
 
-        db.commit()
-       
-        # db.execute(f"SELECT i.*FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tags IN ({tag_list}) GROUP BY i.id HAVING COUNT(DISTINCT t.tags) = {tag_count};")
-        # Used code is better because it parametrizes and protects from SQL injection attacks
+            db.commit()
+        
+            # db.execute(f"SELECT i.*FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tags IN ({tag_list}) GROUP BY i.id HAVING COUNT(DISTINCT t.tags) = {tag_count};")
+            # Used code is better because it parametrizes and protects from SQL injection attacks
+            
+        else:
+            # renders an unfiltered feed when no filters are used
+            db = get_db()
+            results = db.execute("SELECT * FROM inquiries").fetchall()
+            db.commit()
+        
         return render_template("feed.html", results=results)
 
 @app.route("/profile")
