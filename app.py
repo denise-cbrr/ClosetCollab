@@ -243,8 +243,9 @@ def feed():
         else:
             # renders an unfiltered feed when no filters are used
             db = get_db()
-            results = db.execute("SELECT * FROM inquiries").fetchall()
+            results = db.execute("SELECT users.name, users.username, users.college, inquiries.* FROM users JOIN inquiries WHERE users.id = inquiries.user_id;").fetchall()
             db.commit()
+            # still need to figure out how to display the tags
         
         return render_template("feed.html", results=results)
 
