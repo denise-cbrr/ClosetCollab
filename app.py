@@ -205,7 +205,12 @@ def feed():
                 (inquiry_id, tag)
             )
         db.commit()
-        return render_template("feed.html")
+        
+        db = get_db()
+        results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id;").fetchall()
+        db.commit()
+        
+        return render_template("feed.html", results=results)
     
     else:
         tags = request.args.getlist("styleFilter")
