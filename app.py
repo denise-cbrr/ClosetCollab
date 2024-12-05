@@ -230,7 +230,7 @@ def feed():
             # IN () will return the inquiry_id of any inquiry with at least one of those tags
             # GROUP BY will group the inquiries by inqury_id so we deal with one row only
             # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
-            query = f"""SELECT users.name, users.username, users.college, i.*, GROUP_CONCAT(t.tag) AS tags FROM inquiries i JOIN users ON users.id = i.user_id JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ?"""
+            query = f"""SELECT users.name, users.username, users.college, i.*, GROUP_CONCAT(t.tag SEPARATOR ', ') AS tags FROM inquiries i JOIN users ON users.id = i.user_id JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ?"""
            
             db = get_db()
             results = db.execute(query, tags + [tag_count]).fetchall()
@@ -239,13 +239,12 @@ def feed():
         
             # db.execute(f"SELECT i.*FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tags IN ({tag_list}) GROUP BY i.id HAVING COUNT(DISTINCT t.tags) = {tag_count};")
             # Used code is better because it parametrizes and protects from SQL injection attacks
-            
+           
         else:
             # renders an unfiltered feed when no filters are used
             db = get_db()
             results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id;").fetchall()
             db.commit()
-            # still need to figure out how to display the tags
         
         return render_template("feed.html", results=results)
 
@@ -256,5 +255,14 @@ def profile():
 
 @app.route("/interactions")
 def interactions():
-    #placeholder
+    db = get_db()
+    
+    # this would work for the borrowing side (maybe we can return less information compared to feed?)
+    myInquiries = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id WHERE users.id = ?;", session["user_id"])
+    
+    # might need to work on the commenting/accepting request feature first. 
+    # need stuff to fill interactions table to track the lending and the borrowing.
+    #for inquiry in myInquiries:
+        
+        
     return render_template("interactions.html")
