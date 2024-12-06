@@ -255,14 +255,14 @@ def feed():
             # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
             # Order by helps make it so that the newest requests are shown first
             query = f"""
-            SELECT users.name, users.username, users.college, inquiries.*, 
-            GROUP_CONCAT(tags.tag, ', ') AS tags FROM inquiries 
-            JOIN users ON users.id = inquiries.user_id 
-            JOIN tags ON inquiries.id = tags.inquiry_id 
-            WHERE tags.tag IN ({placeholders})
-            AND inquiries.exp_date >= CURRENT_DATE 
-            GROUP BY inquiries.id HAVING COUNT(DISTINCT tags.tag) = ? 
-            ORDER BY inquiries.time_published DESC;"""
+                SELECT users.name, users.username, users.college, inquiries.*, 
+                GROUP_CONCAT(tags.tag, ', ') AS tags FROM inquiries 
+                JOIN users ON users.id = inquiries.user_id 
+                JOIN tags ON inquiries.id = tags.inquiry_id 
+                WHERE tags.tag IN ({placeholders})
+                AND inquiries.exp_date >= CURRENT_DATE 
+                GROUP BY inquiries.id HAVING COUNT(DISTINCT tags.tag) = ? 
+                ORDER BY inquiries.time_published DESC;"""
            
             db = get_db()
             results = db.execute(query, tags + [tag_count]).fetchall()
@@ -284,14 +284,28 @@ def feed():
         
         return render_template("feed.html", results=results)
 
-@app.route("/inquiry/<int:inquiry_id>")
+@app.route("/inquiry/<int:inquiry_id>", methods=["GET", "POST"])
 def inquiry(inquiry_id):
     db = get_db()
     inquiry = db.execute("""
        SELECT * FROM inquiries
         WHERE id = ?
     """, (inquiry_id,)).fetchone()
-    return render_template("inquiry.html", inquiry=inquiry)
+
+    if request.method == "POST":
+        reply = request.form.get("replyResponse")
+        curUser = session["user_id"]
+        response = db.execute(
+            "INSERT INTO responses (inquiry_id, prosp_Lender_id, reply) VALUES (?, ?, ?)",
+            (inquiry_id, curUser, reply)
+        )
+
+    responses = db.execute(
+        "SELECT * FROM responses WHERE inquiry_id = ? ORDER BY time_published DESC", (inquiry_id,)
+        ).fetchall()
+    db.commit()
+
+    return render_template("inquiry.html", responses=responses, inquiry = inquiry)
 
 @app.route("/profile", methods=["GET", "POST"])
 def profile():

@@ -6,11 +6,41 @@
 {% block main %}
     <h3>{{inquiry.request}}</h3>
     <h2>{{inquiry.exp_date}}</h2>
-    {% for reply in replies %}
-        <div>
-            
+    <!-- Button trigger modal (just something random from bootstrap) -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Have an item to lend out?
+    </button>
+    
+    <!-- Modal -->
+    <!-- Creates form for users to add responses to -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add an inquiry!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post">
+                    <div class="mb-3">
+                        <input class="form-control mx-auto w-auto" name="replyResponse" placeholder="Describe your item" type="text" required>
+                        <p>Upload a picture! (to be done)</p>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Submit here!</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+        </div>
+    </div>
+    {% for response in responses %}
+        <div class = "reply_card">
+            <p>Comment: {{response.reply}}</p>
         </div>
     {% endfor %}
+    
 {% endblock %}
 
 

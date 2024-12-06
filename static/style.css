@@ -90,7 +90,6 @@ body {
     }
   }
 
-
   .header-img-container {
     height: 300px;
     background-image: url('your-image.jpg'); /* Replace with your own image */
@@ -104,4 +103,27 @@ body {
   .title-container h1 {
     color: white;
     font-size: 48px;
+  }
+
+/* feel free to change anything */
+.reply_card {
+    margin-top: 20px; 
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    margin: auto
+    width: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .reply_card img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .reply_card p {
+    font-size: 1em;
+    color: #350b0b;
   }
