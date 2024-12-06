@@ -208,7 +208,8 @@ def feed():
         results = db.execute("""SELECT users.name, users.username, users.college, inquiries.*, 
                              GROUP_CONCAT(tags.tag, ', ') AS tags FROM users 
                              JOIN inquiries ON users.id = inquiries.user_id 
-                             JOIN tags ON inquiries.id = tags.inquiry_id 
+                             JOIN tags ON inquiries.id = tags.inquiry_id
+                             WHERE inquiries.exp_date >= CURRENT_DATE 
                              GROUP BY inquiries.id 
                              ORDER BY inquiries.time_published DESC;""").fetchall()
         
@@ -239,13 +240,14 @@ def feed():
             # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
             # Order by helps make it so that the newest requests are shown first
             query = f"""
-            SELECT users.name, users.username, users.college, i.*, 
-            GROUP_CONCAT(t.tag, ', ') AS tags FROM inquiries i 
-            JOIN users ON users.id = i.user_id 
-            JOIN tags t ON i.id = t.inquiry_id 
-            WHERE t.tag IN ({placeholders}) 
-            GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ? 
-            ORDER BY i.time_published DESC;"""
+            SELECT users.name, users.username, users.college, inquiries.*, 
+            GROUP_CONCAT(tags.tag, ', ') AS tags FROM inquiries 
+            JOIN users ON users.id = inquiries.user_id 
+            JOIN tags ON inquiries.id = tags.inquiry_id 
+            WHERE tags.tag IN ({placeholders})
+            AND inquiries.exp_date >= CURRENT_DATE 
+            GROUP BY inquiries.id HAVING COUNT(DISTINCT tags.tag) = ? 
+            ORDER BY inquiries.time_published DESC;"""
            
             db = get_db()
             results = db.execute(query, tags + [tag_count]).fetchall()
@@ -260,7 +262,8 @@ def feed():
             results = db.execute("""SELECT users.name, users.username, users.college, inquiries.*, 
                                  GROUP_CONCAT(tags.tag, ', ') AS tags FROM users 
                                  JOIN inquiries ON users.id = inquiries.user_id 
-                                 JOIN tags ON inquiries.id = tags.inquiry_id 
+                                 JOIN tags ON inquiries.id = tags.inquiry_id
+                                 WHERE inquiries.exp_date >= CURRENT_DATE 
                                  GROUP BY inquiries.id 
                                  ORDER BY inquiries.time_published DESC;""").fetchall()
         
@@ -276,7 +279,7 @@ def interactions():
     db = get_db()
     
     # this would work for the borrowing side (maybe we can return less information compared to feed?)
-    myInquiries = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id WHERE users.id = ? GROUP BY inquiries.id;", session["user_id"])
+    # myInquiries = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id WHERE users.id = ? GROUP BY inquiries.id;", session["user_id"])
     
     # might need to work on the commenting/accepting request feature first. 
     # need stuff to fill interactions table to track the lending and the borrowing.
