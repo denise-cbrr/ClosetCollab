@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}
+    Inquiries
+{% endblock %}
+
+{% block main %}
+    <h3>{{inquiry.request}}</h3>
+    <h2>{{inquiry.exp_date}}</h2>
+    {% for reply in replies %}
+        <div>
+            
+        </div>
+    {% endfor %}
+{% endblock %}
+
+

@@ -269,6 +269,15 @@ def feed():
         
         return render_template("feed.html", results=results)
 
+@app.route("/inquiry/<int:inquiry_id>")
+def inquiry(inquiry_id):
+    db = get_db()
+    inquiry = db.execute("""
+       SELECT * FROM inquiries
+        WHERE id = ?
+    """, (inquiry_id,)).fetchone()
+    return render_template("inquiry.html", inquiry=inquiry)
+
 @app.route("/profile")
 def profile():
     #placeholder

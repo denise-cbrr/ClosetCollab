@@ -50,11 +50,15 @@
                         <td>{{result.college}}</td>
                         {% for tag in result.tags.split(', ') %}
                             <td>{{tag}}</td>
-                            <!-- create hidden form, that reveals itself after u click on it-->
-                            <!-- A form pops up with a -->
                         {% endfor %}
                         <td>{{result.request}}</td>
                         <td>{{result.exp_date}}</td>
+                        <!-- Button that user presses to enter a inquiry reply-->
+                        <td>
+                            <a href="{{ url_for('inquiry', inquiry_id=result.id) }}">
+                                <button type="button">Reply here!</button>
+                            </a>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
