@@ -205,7 +205,12 @@ def feed():
         db.commit()
         
         db = get_db()
+<<<<<<< Updated upstream
         results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id ORDER BY inquiries.time_published DESC;").fetchall()
+=======
+        results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag, ', ') AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id;").fetchall()
+        db.commit()
+>>>>>>> Stashed changes
         
         return render_template("feed.html", results=results)
     
@@ -232,8 +237,12 @@ def feed():
             # IN () will return the inquiry_id of any inquiry with at least one of those tags
             # GROUP BY will group the inquiries by inqury_id so we deal with one row only
             # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
+<<<<<<< Updated upstream
             # Order by helps make it so that the newest requests are shown first
             query = f"""SELECT users.name, users.username, users.college, i.*, GROUP_CONCAT(t.tag, ', ') AS tags FROM inquiries i JOIN users ON users.id = i.user_id JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ? ORDER BY i.time_published DESC;"""
+=======
+            query = f"""SELECT users.name, users.username, users.college, i.*, GROUP_CONCAT(t.tag, ', ') AS tags FROM inquiries i JOIN users ON users.id = i.user_id JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ?"""
+>>>>>>> Stashed changes
            
             db = get_db()
             results = db.execute(query, tags + [tag_count]).fetchall()
@@ -244,7 +253,11 @@ def feed():
         else:
             # renders an unfiltered feed when no filters are used
             db = get_db()
+<<<<<<< Updated upstream
             results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id ORDER BY inquiries.time_published DESC;").fetchall()
+=======
+            results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag, ', ') AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id;").fetchall()
+>>>>>>> Stashed changes
         
         return render_template("feed.html", results=results)
 

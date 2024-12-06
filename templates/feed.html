@@ -48,7 +48,9 @@
                     <tr>
                         <td>{{result.username}}</td>
                         <td>{{result.college}}</td>
-                        <td>{{result.tags}}</td>
+                        {% for tag in result.tags.split(', ') %}
+                            <td>{{tag}}</td>
+                        {% endfor %}
                         <td>{{result.request}}</td>
                         <td>{{result.exp_date}}</td>
                     </tr>
