@@ -193,8 +193,6 @@ def feed():
             (userRequest, expirationDate, curUser)
         )
         
-        # print(size)
-        # print(tags_list)
         inquiry_id = db.execute(
             "SELECT id FROM inquiries ORDER BY id DESC LIMIT 1"
         ).fetchone()[0] 
@@ -207,8 +205,7 @@ def feed():
         db.commit()
         
         db = get_db()
-        results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id;").fetchall()
-        db.commit()
+        results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id ORDER BY inquiries.time_published DESC;").fetchall()
         
         return render_template("feed.html", results=results)
     
@@ -235,12 +232,11 @@ def feed():
             # IN () will return the inquiry_id of any inquiry with at least one of those tags
             # GROUP BY will group the inquiries by inqury_id so we deal with one row only
             # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
-            query = f"""SELECT users.name, users.username, users.college, i.*, GROUP_CONCAT(t.tag SEPARATOR ', ') AS tags FROM inquiries i JOIN users ON users.id = i.user_id JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ?"""
+            # Order by helps make it so that the newest requests are shown first
+            query = f"""SELECT users.name, users.username, users.college, i.*, GROUP_CONCAT(t.tag, ', ') AS tags FROM inquiries i JOIN users ON users.id = i.user_id JOIN tags t ON i.id = t.inquiry_id WHERE t.tag IN ({placeholders}) GROUP BY i.id HAVING COUNT(DISTINCT t.tag) = ? ORDER BY i.time_published DESC;"""
            
             db = get_db()
             results = db.execute(query, tags + [tag_count]).fetchall()
-
-            db.commit()
         
             # db.execute(f"SELECT i.*FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tags IN ({tag_list}) GROUP BY i.id HAVING COUNT(DISTINCT t.tags) = {tag_count};")
             # Used code is better because it parametrizes and protects from SQL injection attacks
@@ -248,8 +244,7 @@ def feed():
         else:
             # renders an unfiltered feed when no filters are used
             db = get_db()
-            results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id;").fetchall()
-            db.commit()
+            results = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id ORDER BY inquiries.time_published DESC;").fetchall()
         
         return render_template("feed.html", results=results)
 
@@ -263,7 +258,7 @@ def interactions():
     db = get_db()
     
     # this would work for the borrowing side (maybe we can return less information compared to feed?)
-    myInquiries = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id GROUP BY inquiries.id WHERE users.id = ?;", session["user_id"])
+    myInquiries = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id WHERE users.id = ? GROUP BY inquiries.id;", session["user_id"])
     
     # might need to work on the commenting/accepting request feature first. 
     # need stuff to fill interactions table to track the lending and the borrowing.
