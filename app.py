@@ -1,7 +1,9 @@
 import sqlite3
-from flask import Flask, flash, redirect, render_template, request, session, g
+import os
+from flask import Flask, flash, redirect, render_template, request, session, url_for, send_from_directory, g
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 from helpers import apology, login_required
 
 #Tables:
@@ -32,10 +34,23 @@ from helpers import apology, login_required
 # Configure application
 app = Flask(__name__)
 
+# Folder where uploaded images will be stored
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Ensure upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        
 # Function to get the database connection
 def get_db():
     """Opens a new database connection if one doesn't exist"""
@@ -278,10 +293,33 @@ def inquiry(inquiry_id):
     """, (inquiry_id,)).fetchone()
     return render_template("inquiry.html", inquiry=inquiry)
 
-@app.route("/profile")
+@app.route("/profile", methods=["GET", "POST"])
 def profile():
-    #placeholder
+    if request.method == "POST":
+        
+        if 'image' not in request.files:
+            return apology ("No image uploaded", 400)
+        
+        file = request.files['image']
+        
+        if file.filename == '':
+            return apology("No selected file.", 400)
+        
+        # saving the file to the server
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('download_file', name=filename))
+         
     return render_template("profile.html")
+
+
+@app.route('/uploads/<name>')
+def download_file(name):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], name)
+
 
 @app.route("/interactions")
 def interactions():
