@@ -301,8 +301,9 @@ def inquiry(inquiry_id):
         )
 
     responses = db.execute(
-        "SELECT * FROM responses WHERE inquiry_id = ? ORDER BY time_published DESC", (inquiry_id,)
-        ).fetchall()
+        "SELECT responses.*, users.username AS lender_username FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.inquiry_id = ? ORDER BY responses.time_published DESC", (inquiry_id, )).fetchall();
+        #"SELECT * FROM responses WHERE inquiry_id = ? ORDER BY time_published DESC", (inquiry_id,)
+        #).fetchall()
     db.commit()
 
     return render_template("inquiry.html", responses=responses, inquiry = inquiry)
