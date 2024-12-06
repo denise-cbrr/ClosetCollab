@@ -327,8 +327,12 @@ def profile():
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             return redirect(url_for('download_file', name=filename))
-         
-    return render_template("profile.html")
+        
+    db = get_db()
+    curUser = session["user_id"]
+    inquiries = db.execute(
+        "SELECT * FROM inquiries WHERE user_id = ?", (curUser, )).fetchall();
+    return render_template("profile.html", inquiries = inquiries)
 
 
 @app.route('/uploads/<name>')

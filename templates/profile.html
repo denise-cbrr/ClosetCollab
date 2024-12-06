@@ -40,6 +40,29 @@
     <h2>Uploaded Image:</h2>
     <img id="uploadedImage" style="max-width: 500px; display:none;" />
 
-    <h2>My Inquiries</h2>
+    <div class="mb-3">
+        <table>
+            <thead>
+                <tr>
+                    <th>My Inquiries</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- I think we can look into creating like cards to represent these things? like ui fizz but multiple per row-->
+                {% for inquiry in inquiries %}
+                    <tr>
+                        <td>{{inquiry.request}}</td>
+                        <td>{{inquiry.exp_date}}</td>
+                        <!-- Button that user presses to enter a inquiry reply-->
+                        <td>
+                            <a href="{{ url_for('inquiry', inquiry_id=inquiry.id) }}">
+                                <button type="button">See your replies!</button>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 {% endblock %}
