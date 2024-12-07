@@ -292,6 +292,10 @@ def inquiry(inquiry_id):
         WHERE id = ?
     """, (inquiry_id,)).fetchone()
 
+    #Checks if user is viewing their own post 
+    curUser = session["user_id"]
+    is_owner = inquiry["user_id"] == curUser
+
     if request.method == "POST":
         reply = request.form.get("replyResponse")
         curUser = session["user_id"]
@@ -306,7 +310,7 @@ def inquiry(inquiry_id):
         #).fetchall()
     db.commit()
 
-    return render_template("inquiry.html", responses=responses, inquiry = inquiry)
+    return render_template("inquiry.html", responses=responses, inquiry = inquiry, is_owner=is_owner)
 
 @app.route("/profile", methods=["GET", "POST"])
 def profile():

@@ -36,10 +36,83 @@
         </div>
     </div>
     {% for response in responses %}
-        <div class = "reply_card">
+        <!-- Im not sure why the code doesn't let me store it without the "reply-"-->
+        <div class = "reply_card" id="reply-{{ response.id }}">
             <p>{{response.lender_username}}: {{response.reply}}</p>
+            <!-- Only shows buttons if the current user is viewing their own inquiries-->
+            {% if is_owner %}
+                <button class="accept-btn" data-id="{{ response.id }}">Accept</button>
+                <button class="decline-btn" data-id="{{ response.id }}">Decline</button>
+            {% endif %}
         </div>
     {% endfor %}
+    <form  method="post">
+        <button class="confirm-accept-btn">Confirm your selection! (Please note, you will not be able to change this)</button>
+    </form>
+
+    <script>
+        // Refreshes on every reload
+         document.addEventListener("DOMContentLoaded", () => {
+            // ID of the reply that is currently accepted (set null originally when site first loads)
+            let acceptedReplyId = null; 
+
+            // Will store all the responses we'll need to delete in the sql (aka the user doesn't want them)
+            let to_be_deleted = new Set();
+
+            document.querySelectorAll(".reply_card").forEach(card => {
+                let id_for_sql = card.id.replace('reply-', '');
+                const acceptBtn = card.querySelector(".accept-btn");
+                const declineBtn = card.querySelector(".decline-btn");
+
+                // Updates what's the current selected reply id when a "accept" button is clicked
+                acceptBtn.addEventListener("click", () => {
+                    // Checks if this card had been declined, and if it has, remove it from that list because the user now intends to accept it
+                    to_be_deleted.delete(id_for_sql);
+
+                    // If there was something selected before it:
+                    if (acceptedReplyId) {
+                        // identify what was previously selected and replaces it
+                        const previousCard = document.querySelector(`#${acceptedReplyId}`);
+                        if (previousCard) {
+                            const previousAcceptBtn = previousCard.querySelector(".accept-btn");
+                            const previousDeclineBtn = previousCard.querySelector(".decline-btn");
+
+                            // previousDeclineBtn.disabled = false;
+
+                            previousAcceptBtn.classList.remove("accepted");
+                            previousDeclineBtn.classList.remove("declined");
+                        }
+                    }
+                    // Set new accepted reply
+                    acceptedReplyId = card.id;
+
+                    // Adds color (green for selected)
+                    acceptBtn.classList.add("accepted"); 
+
+                    // Removes any red coloring just in case there was one from before
+                    declineBtn.classList.remove("declined"); 
+                })
+
+                declineBtn.addEventListener("click", () => {
+                    const selected_reply = card.id;
+                    
+                    // Adds red color
+                    declineBtn.classList.add("declined"); 
+
+                    // Checks if this response was "accepted" before, and if it has, change it so that it now has declined status
+                    if (acceptedReplyId === card.id){
+                        acceptBtn.classList.remove("accepted");
+                        acceptedReplyId = null; 
+                    }
+
+                    // Add this card's id as one that needs to be deleted
+                    to_be_deleted.add(id_for_sql);
+
+                    //console.log("to_be_deleted:", Array.from(to_be_deleted));
+                })
+            })
+         })
+    </script>
     
 {% endblock %}
 
