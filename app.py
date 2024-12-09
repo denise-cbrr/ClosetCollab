@@ -494,9 +494,35 @@ def uploaded_file(name):
     
 
 
-@app.route("/interactions")
+@app.route("/interactions", methods=["GET", "POST"])
 def interactions():
     db = get_db()
+    curUser = session["user_id"]
+    borrow_interactions = db.execute(
+    """
+        SELECT
+            inquiries.request AS request, inquiries.exp_date AS exp_date, interactions.*, responses.lending_exp_date AS lending_exp_date
+            FROM inquiries 
+            JOIN interactions ON inquiries.id = interactions.inquiry_id
+            JOIN responses ON inquiries.id = responses.inquiry_id
+            WHERE interactions.user_id = ?
+    """,(curUser, )).fetchall()
+    # SELECT inquiries.request, interactions.*, responses.lending_exp_date FROM inquiries JOIN interactions ON inquiries.id = interactions.inquiry_id JOIN responses ON inquiries.id = responses.inquiry_id WHERE interactions.user_id = ?
+    if request.method == "POST":
+        
+        # Check if accepted button was pressed
+        if "receiveButton" in request.form:
+            btn_val = request.form["receiveButton"]
+            
+            if btn_val == "received":
+                inquiry_id = request.form["inquiry_id"]
+                db.execute("UPDATE inquiries SET status = 'in progress' WHERE id = ?", (inquiry_id, ))
+                
+        if "returnButton" in request.form:
+            btn_val = request.form["returnButton"]
+                
+        
+        
     
     # this would work for the borrowing side (maybe we can return less information compared to feed?)
     # myInquiries = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id WHERE users.id = ? GROUP BY inquiries.id;", session["user_id"])
@@ -504,7 +530,6 @@ def interactions():
     # might need to work on the commenting/accepting request feature first. 
     # need stuff to fill interactions table to track the lending and the borrowing.
     #for inquiry in myInquiries:
-        
-        
-    return render_template("interactions.html")
+    
+    return render_template("interactions.html", borrow_interactions=borrow_interactions)
 
