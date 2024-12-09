@@ -414,11 +414,10 @@ def profile():
     db = get_db()
     if request.method == "POST":
         #Deals with photos
-        if "profilePic" in request.form:
-            file_path = upload_image("profilePic", "PROFILE_UPLOAD")            
-            db.execute("UPDATE users SET img_path = ? WHERE id = ?", (file_path, session["user_id"]))
+        file_path = upload_image("profilePic", "PROFILE_UPLOAD")            
+        db.execute("UPDATE users SET img_path = ? WHERE id = ?", (file_path, session["user_id"]))
         # Triggered when user presses delete, and this will remove that inquiry from the table
-        elif "inquiry_id_delete" in request.form:
+        if "inquiry_id_delete" in request.form:
             inquiry_id_delete = request.form.get("inquiry_id_delete")
             db.execute("DELETE FROM inquiries WHERE id = ?", (inquiry_id_delete, ))
             
