@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import hashlib
 from flask import Flask, flash, redirect, render_template, request, session, url_for, send_from_directory, Response, g
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
