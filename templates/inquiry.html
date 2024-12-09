@@ -43,7 +43,8 @@
             <p>{{response.lender_username}}: {{response.reply}}</p>
             {% if response.img_path %}
                 <h3>Uploaded Image:</h3>
-                <img src="{{ response.img_path }}" alt="User Image" style="max-width: 200px;">
+                <p>{{response.img_path}}</p>
+                <img src="{{ url_for('static', filename=response.img_path) }}" alt="User Image" style="max-width: 200px;">
             {% else %}
                 <p>No image uploaded yet.</p>
             {% endif %}

@@ -51,7 +51,8 @@
 
     {% if picture %}
         <h3>Uploaded Image:</h3>
-        <img src="{{ picture }}" alt="User Image" style="max-width: 200px;">
+        <p>{{ url_for('static', filename=picture) }}</p>
+        <img src="{{ url_for('static', filename=picture) }}" alt="User Image" style="max-width: 200px;">
     {% else %}
         <p>No image uploaded yet.</p>
     {% endif %}

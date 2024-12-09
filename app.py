@@ -36,8 +36,10 @@ from helpers import apology, login_required
 app = Flask(__name__)
 
 # Folders where uploaded images will be stored
-PROFILE_UPLOAD = 'profile'
-RESPONSES_UPLOAD = 'responses'
+ROOT_PATH = os.path.dirname(__file__)
+STATIC_DIR = os.path.join(ROOT_PATH, 'static')
+PROFILE_UPLOAD = os.path.join(STATIC_DIR, 'profile')
+RESPONSES_UPLOAD = os.path.join(STATIC_DIR, 'responses')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app.config['PROFILE_UPLOAD'] = PROFILE_UPLOAD
@@ -82,31 +84,11 @@ def upload_image(img_name, folder_name):
     filename = secure_filename(file.filename)
     
     file_path = os.path.join(app.config[folder_name], filename)
+    print(file_path)
     file.save(file_path)
     
-    return file_path
+    return os.path.relpath(file_path, STATIC_DIR)
 
-# Function for image uploads
-def upload_image(img_name, folder_name):
-    
-    if img_name not in request.files:
-        return apology ("No image uploaded", 400)
-        
-    file = request.files[img_name]
-        
-    if not file.filename:
-        return apology("No selected file.", 400)
-        
-    # saving the file to the server     
-    if not allowed_file(file.filename):
-        return apology("File type not allowed.", 400)
-        
-    filename = secure_filename(file.filename)
-    
-    file_path = os.path.join(app.config[folder_name], filename)
-    file.save(file_path)
-    
-    return file_path
 
 # Function to close the database connection
 @app.teardown_appcontext
@@ -404,6 +386,8 @@ def inquiry(inquiry_id):
     #print(pics)
     for response in responses:
         print(response['img_path'])
+    
+    
         
         
     db.commit()
@@ -467,7 +451,7 @@ def download_file(name):
 
 @app.route('/responses/<name>')
 def uploaded_file(name):
-    return send_from_directory(app.config["RESPONSES_UPLOAD"], name)
+    return send_from_directory('responses', name)
 
 #@app.route('/return_image/<string:table>/<int:id>')
 #def return_image(table, id):
