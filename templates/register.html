@@ -1,44 +1,48 @@
+{% extends "layout.html" %}
+
 {% block title %}
-    Register
+Register
 {% endblock %}
 
 {% block main %}
-    <form action="/register" method="post">
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="name" placeholder="Name" type="text">
-        </div>
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" name="email" placeholder="Email" type="email">
-        </div>
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text">
-        </div>
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" name="password" placeholder="Password" type="password">
-        </div>
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" name="confirmation" placeholder="Confirm your password" type="password">
-        </div>
-        <!-- Creates a drop down where user can select their residential college -->
-        <div class="mb-3">
-            <select name="college" class="form-select" aria-label="Default select example">
-                <option disabled selected value="">Residential College</option>
-                    <option value="Benjamin Franklin">Benjamin Franklin</option>
-                    <option value="Berkeley">Berkeley</option>
-                    <option value="Branford">Branford</option>
-                    <option value="Davenport">Davenport</option>
-                    <option value="Ezra Stiles">Ezra Stiles</option>
-                    <option value="Grace Hopper">Grace Hopper</option>
-                    <option value="Jonathan Edwards">Jonathan Edwards</option>
-                    <option value="Morse">Morse</option>
-                    <option value="Pauli Murray">Pauli Murray</option>
-                    <option value="Pierson">Pierson</option>
-                    <option value="Saybrook">Saybrook</option>
-                    <option value="Siliman">Siliman</option>
-                    <option value="Timothy Dwight">Timothy Dwight</option>
-                    <option value="Trumbull">Trumbull</option>
-            </select>
-        </div>
-        <button class="btn btn-primary" type="submit">Register</button>
-    </form>
+<div class="content">
+   <h2 class="h2">Register</h2>
+   <form action="{{ url_for('register') }}" method="post" class="register-form">
+       <div class="mb-3">
+           <input autocomplete="off" autofocus class="form-control" name="name" placeholder="Name" type="text">
+       </div>
+       <div class="mb-3">
+           <input class="form-control" name="email" placeholder="Email" type="email">
+       </div>
+       <div class="mb-3">
+           <input autocomplete="off" class="form-control" name="username" placeholder="Username" type="text">
+       </div>
+       <div class="mb-3">
+           <input class="form-control" name="password" placeholder="Password" type="password">
+       </div>
+       <div class="mb-3">
+           <input class="form-control" name="confirmation" placeholder="Confirm your password" type="password">
+       </div>
+       <div class="mb-3">
+           <select name="college" class="form-select" aria-label="Default select example">
+               <option disabled selected value="">Residential College</option>
+               <option value="Benjamin Franklin">Benjamin Franklin</option>
+               <option value="Berkeley">Berkeley</option>
+               <option value="Branford">Branford</option>
+               <option value="Davenport">Davenport</option>
+               <option value="Ezra Stiles">Ezra Stiles</option>
+               <option value="Grace Hopper">Grace Hopper</option>
+               <option value="Jonathan Edwards">Jonathan Edwards</option>
+               <option value="Morse">Morse</option>
+               <option value="Pauli Murray">Pauli Murray</option>
+               <option value="Pierson">Pierson</option>
+               <option value="Saybrook">Saybrook</option>
+               <option value="Siliman">Siliman</option>
+               <option value="Timothy Dwight">Timothy Dwight</option>
+               <option value="Trumbull">Trumbull</option>
+           </select>
+       </div>
+       <button class="btn btn-primary" type="submit">Register</button>
+   </form>
+</div>
 {% endblock %}

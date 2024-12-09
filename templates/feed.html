@@ -1,51 +1,50 @@
 {% extends "layout.html" %}
-{% block title %}
-    Feed
-{% endblock %}
+
+{% block title %}Feed{% endblock %}
 
 {% block main %}
-    <h1>Feed</h1>
-    <form action="/feed" method="GET">
-        <div class="mb-3">
-            <select name="styleFilter" class="form-select" aria-label="Default select example">
-                <option disabled selected value="">Filter by Style</option>
-                    <option value="Formal">Formal</option>
-                    <option value="Casual">Casual</option>
-                    <option value="Streetwear">Streetwear</option>
-                    <option value="Athleisure">Athleisure</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <select name="sizeFilter" class="form-select" aria-label="Default select example">
-                <option disabled selected value="">Filter by Size</option>
-                    <option value="XS">XS</option>
-                    <option value="S">S</option>
-                    <option value="M">M</option>
-                    <option value="L">L</option>
-                    <option value="XL">XL</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <select name="typeFilter" class="form-select" aria-label="Default select example">
-                <option disabled selected value="">Filter by Type</option>
-                    <option value="Shirt">Shirt</option>
-                    <option value="Jacket">Jacket</option>
-            </select>
-        </div>
-        <button type="submit">Apply Filters</button>
-    </form>
-    
-    <div class="mb-3">
-        <table>
-            <thead>
-                <tr>
-                    <th>Inquiries</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- I think we can look into creating like cards to represent these things? like ui fizz but multiple per row-->
-                {% for result in results %}
-                    <tr>
+<div class="page-container">
+   <h1 class="page-title">Feed</h1>
+
+   <div class="filter-container">
+       <form action="{{ url_for('feed') }}" method="GET" class="filter-form">
+           <div class="filter-group">
+               <label for="styleFilter">Style:</label>
+               <select name="styleFilter" id="styleFilter" class="filter-select">
+                   <option disabled selected value="">All</option>
+                   <option value="Formal">Formal</option>
+                   <option value="Casual">Casual</option>
+                   <option value="Streetwear">Streetwear</option>
+                   <option value="Athleisure">Athleisure</option>
+               </select>
+           </div>
+           <div class="filter-group">
+               <label for="sizeFilter">Size:</label>
+               <select name="sizeFilter" id="sizeFilter" class="filter-select">
+                   <option disabled selected value="">All</option>
+                   <option value="XS">XS</option>
+                   <option value="S">S</option>
+                   <option value="M">M</option>
+                   <option value="L">L</option>
+                   <option value="XL">XL</option>
+               </select>
+           </div>
+           <div class="filter-group">
+               <label for="typeFilter">Type:</label>
+               <select name="typeFilter" id="typeFilter" class="filter-select">
+                   <option disabled selected value="">All</option>
+                   <option value="Shirt">Shirt</option>
+                   <option value="Jacket">Jacket</option>
+               </select>
+           </div>
+           <button type="submit" class="btn-primary">Apply Filters</button>
+       </form>
+   </div>
+
+   <div class="inquiries-container" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;">
+       {% for result in results %}
+       <div class="inquiry-card" style="flex: 0 0 calc(50% - 10px);">
+           <div class="inquiry-header">
                         <td>
                             {% if result.img_path %}
                                 <h3>Uploaded Image:</h3>
@@ -54,74 +53,143 @@
                                 <p>No image uploaded yet.</p>
                             {% endif %}
                         </td>
-                        <td>{{result.username}}</td>
-                        <td>{{result.college}}</td>
-                        {% for tag in result.tags.split(', ') %}
-                            <td>{{tag}}</td>
-                        {% endfor %}
-                        <td>{{result.request}}</td>
-                        <td>{{result.exp_date}}</td>
-                        <!-- Button that user presses to enter a inquiry reply-->
-                        <td>
-                            <a href="{{ url_for('inquiry', inquiry_id=result.id) }}">
-                                <button type="button">Reply here!</button>
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+               <div class="inquiry-user">
+                   <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
+                   <div class="inquiry-user-info">
+                       <h3 class="inquiry-username">{{ result.username }}</h3>
+                       <p class="inquiry-college">{{ result.college }}</p>
+                   </div>
+               </div>
+               <div class="inquiry-tags">
+                   {% for tag in result.tags.split(', ') %}
+                       <span class="tag">{{ tag }}</span>
+                   {% endfor %}
+               </div>
+           </div>
+           <p class="inquiry-request">{{ result.request }}</p>
+           <p class="inquiry-expiration">Expires: {{ result.exp_date }}</p>
+           <div class="inquiry-actions">
+               <a href="{{ url_for('inquiry', inquiry_id=result.id) }}">
+                   <button class="btn-primary">Reply</button>
+               </a>
+           </div>
+       </div>
+       {% endfor %}
+   </div>
 
-    <!-- Button trigger modal (just something random from bootstrap) -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        What do you want to borrow?
-    </button>
-    
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Add an</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="/feed" method="post">
-                    <div class="mb-3">
-                        <input class="form-control mx-auto w-auto" name="userRequest" placeholder="Explain your request" type="text" required>
-                    </div>
-                    <select name="style" class="form-select" aria-label="Default select example" multiple>
-                        <option disabled selected value="">Please attach any tags that are applicable!</option>
-                            <option value="Formal">Formal</option>
-                            <option value="Casual">Casual</option>
-                            <option value="Streetwear">Streetwear</option>
-                            <option value="Athleisure">Athleisure</option>
-                    </select>
-                    <select name="size" class="form-select" aria-label="Default select example" required>
-                        <option disabled selected value="">What size?</option>
-                            <option value="XS">XS</option>
-                            <option value="S">S</option>
-                            <option value="M">M</option>
-                            <option value="L">L</option>
-                            <option value="XL">XL</option>
-                    </select>
-                    <select name="item" class="form-select" aria-label="Default select example">
-                        <option disabled selected value="">What type of clothing?</option>
-                            <option value="Shirt">Shirt</option>
-                            <option value="Jacket">Jacket</option>
-                    </select>
-                    <div class="mb-3">
-                        <input class="form-control mx-auto w-auto" name="expirationDate" placeholder="Expiration Date: " type="date" required>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Submit Request</button>
-                </form>
-            </div>
-            <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
-            </div>
-        </div>
-        </div>
-    </div>
+   <div class="new-inquiry-container">
+       <button class="btn-primary" id="addInquiryBtn">
+           Add an Inquiry
+       </button>
+   </div>
+
+   <div class="modal" id="newInquiryModal">
+       <div class="modal-dialog">
+           <div class="modal-content">
+               <div class="modal-header">
+                   <h5 class="modal-title">Add an inquiry!</h5>
+                   <button type="button" class="btn-close"></button>
+               </div>
+               <div class="modal-body">
+                   <form action="{{ url_for('feed') }}" method="post">
+                       <div class="mb-3">
+                           <input class="form-control" name="userRequest" placeholder="Explain your request" type="text" required>
+                       </div>
+                       <div class="mb-3">
+                           <select name="style" class="form-select" multiple>
+                               <option disabled selected value="">Select styles</option>
+                               <option value="Formal">Formal</option>
+                               <option value="Casual">Casual</option>
+                               <option value="Streetwear">Streetwear</option>
+                               <option value="Athleisure">Athleisure</option>
+                           </select>
+                       </div>
+                       <div class="mb-3">
+                           <select name="size" class="form-select" required>
+                               <option disabled selected value="">Size</option>
+                               <option value="XS">XS</option>
+                               <option value="S">S</option>
+                               <option value="M">M</option>
+                               <option value="L">L</option>
+                               <option value="XL">XL</option>
+                           </select>
+                       </div>
+                       <div class="mb-3">
+                           <select name="item" class="form-select">
+                               <option disabled selected value="">Item type</option>
+                               <option value="Shirt">Shirt</option>
+                               <option value="Jacket">Jacket</option>
+                           </select>
+                       </div>
+                       <div class="mb-3">
+                           <input class="form-control" name="expirationDate" type="date" required>
+                       </div>
+                       <button type="submit" class="btn-primary">Submit Request</button>
+                   </form>
+               </div>
+           </div>
+       </div>
+   </div>
+</div>
+
+<style>
+.modal {
+   display: none;
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   background-color: rgba(0,0,0,0.5);
+   z-index: 1000;
+}
+
+.modal.show {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+}
+
+.inquiries-container {
+   width: 100%;
+   max-width: 1200px;
+   margin: 0 auto;
+}
+
+.inquiry-card {
+   background-color: white;
+   border-radius: 10px;
+   padding: 20px;
+   margin-bottom: 20px;
+   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+   .inquiry-card {
+       flex: 0 0 100% !important;
+   }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+   const addButton = document.querySelector('#addInquiryBtn');
+   const modal = document.querySelector('#newInquiryModal');
+   const closeBtn = document.querySelector('.btn-close');
+
+   addButton.addEventListener('click', () => {
+       modal.classList.add('show');
+   });
+
+   closeBtn.addEventListener('click', () => {
+       modal.classList.remove('show');
+   });
+
+   window.addEventListener('click', (e) => {
+       if (e.target === modal) {
+           modal.classList.remove('show');
+       }
+   });
+});
+</script>
 {% endblock %}

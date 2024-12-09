@@ -1,10 +1,75 @@
-{% extends "layout.html" %}
-{% block title %}
-    Index
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %} - Closet Collab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="header-nav-container">
+        <div class="header-img-container">
+            <div class="title-container">
+                <h1>Closet Collab</h1>
+            </div>
+        </div>
+        
+        <nav class="navbar navbar-container">
+            <div class="container-fluid">
+                <a href="{{ url_for('index') }}" class="navbar-brand"></a>
+                <button class="navbar-toggler" id="navbar-toggler">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <ul class="navbar-nav" id="navbarNav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('feed') }}">Feed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('interactions') }}">Interactions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
+                    </li>
+                    {% if not session.user_id %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </div>
 
-{% block main %}
-    <h1>About Page</h1>
-    <button onclick="window.location.href='/login';">Login here!</button>
-    <button onclick="window.location.href='/register';">Register here!</button>
-{% endblock %}
+    <main class="content">
+        {% block main %}
+        <h2 class="h2">Welcome to Closet Collab!</h2>
+        <p>Have you ever needed a "stitch to wear?" Wanted a fun new dress to wear to formal but couldn't get it last minute? Join your fellow Yalies on the hottest new outfit sharing website; Closet Collab! Post inquiries in those last minute times of need to borrow from other Yalies, and respond when you are willing to provide! Join Closet Collab below.</p>
+        
+        <div class="form-container text-center">
+            <a href="{{ url_for('register') }}" class="btn btn-primary">Join Now</a>
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Log In</a>
+        </div>
+        {% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Closet Collab. All rights reserved.</p>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
