@@ -18,7 +18,7 @@
         <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Add an inquiry!</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Add an reply!</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -27,7 +27,8 @@
                         <input class="form-control mx-auto w-auto" name="replyResponse" placeholder="Describe your item" type="text" required>
                         <p>Upload a picture!</p>
                             <input name="replyPic" placeholder="Image: " type="file" accept="image/*" required>
-                        <input class="form-control mx-auto w-auto" name="lending_exp_date" placeholder="Date you want your item back!" type="date" required>
+                        <p>"Date you want your item back!"</p>
+                        <input class="form-control mx-auto w-auto" name="lending_exp_date" type="date" required>
                     </div>
                     <button class="btn btn-primary" type="submit">Submit here!</button>
                 </form>
@@ -153,7 +154,6 @@
             })
          })
     </script>
-    
 {% endblock %}
 
 

@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import hashlib
+from datetime import datetime
 from flask import Flask, flash, redirect, render_template, request, session, url_for, send_from_directory, Response, g
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -256,7 +257,7 @@ def feed():
         db.commit()
         
         db = get_db()
-        results = db.execute("""SELECT users.name, users.username, users.college, inquiries.*, 
+        results = db.execute("""SELECT users.name, users.username, users.college, users.img_path, inquiries.*, 
                              GROUP_CONCAT(tags.tag, ', ') AS tags FROM users 
                              JOIN inquiries ON users.id = inquiries.user_id 
                              JOIN tags ON inquiries.id = tags.inquiry_id
@@ -265,6 +266,9 @@ def feed():
                              GROUP BY inquiries.id 
                              ORDER BY inquiries.time_published DESC;""").fetchall()
         
+        for result in results:
+            print(result['img_path'])
+            
         return render_template("feed.html", results=results)
     
     else:
@@ -379,7 +383,11 @@ def inquiry(inquiry_id):
                     db.execute("DELETE FROM responses WHERE id = ?", (id, ))
     
     db.execute("DELETE FROM responses WHERE lending_exp_date < CURRENT_DATE")
+
     db.execute("DELETE FROM inquiries WHERE accepted ='no' AND exp_date < CURRENT_DATE")
+    db.execute("DELETE FROM tags WHERE inquiry_id NOT IN (SELECT id FROM inquiries)")
+    db.execute("DELETE FROM responses WHERE inquiry_id NOT IN (SELECT id FROM inquiries)")
+
     responses = db.execute(
         "SELECT responses.*, users.username AS lender_username FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.inquiry_id = ? ORDER BY responses.time_published DESC", (inquiry_id, )).fetchall();
         #"SELECT * FROM responses WHERE inquiry_id = ? ORDER BY time_published DESC", (inquiry_id,)
@@ -417,11 +425,6 @@ def profile():
         #Deals with photos
         file_path = upload_image("profilePic", "PROFILE_UPLOAD")            
         db.execute("UPDATE users SET img_path = ? WHERE id = ?", (file_path, session["user_id"]))
-        # Triggered when user presses delete, and this will remove that inquiry from the table
-        if "inquiry_id_delete" in request.form:
-            inquiry_id_delete = request.form.get("inquiry_id_delete")
-            db.execute("DELETE FROM inquiries WHERE id = ?", (inquiry_id_delete, ))
-            
         #return redirect(url_for('download_file', name=filename))
             
     db = get_db()
@@ -499,31 +502,78 @@ def uploaded_file(name):
 def interactions():
     db = get_db()
     curUser = session["user_id"]
+    
+     # person didn't receive it in time: aka LATE
+    db.execute(
+        """
+        UPDATE interactions
+        SET status = 'late'
+        WHERE status = 'pending'
+        AND inquiry_id IN (
+            SELECT id
+            FROM inquiries
+            WHERE exp_date < DATE('now', '+5 day')
+        )
+        """
+    )
+
+    db.execute(
+        """
+        UPDATE interactions
+        SET status = 'lost'
+        WHERE status = 'in progress'
+        AND inquiry_id IN (
+            SELECT id
+            FROM responses
+            WHERE lending_exp_date < DATE('now', '+5 day')
+        )
+        """
+    )
+
+    # if lender doesn't get their item back 
+    # for interaction in lender_interactions:
+        
+    
+    if request.method == "POST":
+        # go through all the interactions, and if status = pending but the expiration date has past, then status should be late?
+        # Check if accepted button was pressed
+        if "receiveButton" in request.form:
+            inquiry_id = request.form["inquiry_id"]
+            db.execute("UPDATE interactions SET status = 'in progress' WHERE inquiry_id = ?", (inquiry_id, ))
+                
+        if "returnButton" in request.form:
+            inquiry_id = request.form["inquiry_id"]
+            db.execute("UPDATE interactions SET status = 'completed' WHERE inquiry_id = ?", (inquiry_id, ))
+
+        if "inquiry_id_delete" in request.form:
+            inquiry_id_delete = request.form.get("inquiry_id_delete")
+            db.execute("DELETE FROM inquiries WHERE id = ?", (inquiry_id_delete, ))
+            db.execute("DELETE FROM tags WHERE inquiry_id = ?", (inquiry_id_delete, ))
+            db.execute("DELETE FROM responses WHERE inquiry_id = ?", (inquiry_id_delete, ))
+            db.execute("DELETE FROM interactions WHERE inquiry_id = ?", (inquiry_id_delete, ))
+                
     borrow_interactions = db.execute(
     """
         SELECT
-            inquiries.request AS request, inquiries.exp_date AS exp_date, interactions.*, responses.lending_exp_date AS lending_exp_date
+            inquiries.request AS request, inquiries.exp_date AS exp_date, interactions.*, responses.lending_exp_date AS lending_exp_date, responses.img_path AS img_path
             FROM inquiries 
             JOIN interactions ON inquiries.id = interactions.inquiry_id
             JOIN responses ON inquiries.id = responses.inquiry_id
             WHERE interactions.user_id = ?
     """,(curUser, )).fetchall()
     # SELECT inquiries.request, interactions.*, responses.lending_exp_date FROM inquiries JOIN interactions ON inquiries.id = interactions.inquiry_id JOIN responses ON inquiries.id = responses.inquiry_id WHERE interactions.user_id = ?
-    if request.method == "POST":
-        
-        # Check if accepted button was pressed
-        if "receiveButton" in request.form:
-            btn_val = request.form["receiveButton"]
-            
-            if btn_val == "received":
-                inquiry_id = request.form["inquiry_id"]
-                db.execute("UPDATE inquiries SET status = 'in progress' WHERE id = ?", (inquiry_id, ))
-                
-        if "returnButton" in request.form:
-            btn_val = request.form["returnButton"]
-                
-        
-        
+    
+    lender_interactions = db.execute(
+        """SELECT
+            inquiries.request AS request, responses.img_path AS img_path, interactions.*, responses.lending_exp_date AS lending_exp_date
+            FROM inquiries 
+            JOIN interactions ON inquiries.id = interactions.inquiry_id
+            JOIN responses ON inquiries.id = responses.inquiry_id
+            WHERE interactions.lender_id = ?
+    """,(curUser, )).fetchall()
+
+    for interaction in borrow_interactions:
+        print(interaction['img_path'])
     
     # this would work for the borrowing side (maybe we can return less information compared to feed?)
     # myInquiries = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id WHERE users.id = ? GROUP BY inquiries.id;", session["user_id"])
@@ -532,5 +582,6 @@ def interactions():
     # need stuff to fill interactions table to track the lending and the borrowing.
     #for inquiry in myInquiries:
     
-    return render_template("interactions.html", borrow_interactions=borrow_interactions)
+    db.commit()
+    return render_template("interactions.html", borrow_interactions=borrow_interactions, lender_interactions=lender_interactions)
 

@@ -46,6 +46,14 @@
                 <!-- I think we can look into creating like cards to represent these things? like ui fizz but multiple per row-->
                 {% for result in results %}
                     <tr>
+                        <td>
+                            {% if result.img_path %}
+                                <h3>Uploaded Image:</h3>
+                                <img src="{{ url_for('static', filename=result.img_path) }}" alt="User Image" style="max-width: 100px;">
+                            {% else %}
+                                <p>No image uploaded yet.</p>
+                            {% endif %}
+                        </td>
                         <td>{{result.username}}</td>
                         <td>{{result.college}}</td>
                         {% for tag in result.tags.split(', ') %}

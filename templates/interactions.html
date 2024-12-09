@@ -5,6 +5,7 @@
 
 {% block main %}
     <h1>Interactions</h1>
+    <h3>What I'm borrowing</h3>
     <table class="table">
         <thead>
           <tr>
@@ -18,21 +19,106 @@
         <tbody>
         {% for interaction in borrow_interactions %}
             <tr>
-                <th scope="col">{{ interaction.request }}</th>
-                <th scope="col">{{ interaction.exp_date }}</th>
-                <th scope="col">{{ interaction.lending_exp_date }}</th>
-                <th scope="col">image</th>
-                <th scope="col">{{ interaction.status }}</th>
-                <th>
-                  <form method="POST">
-                    <input type="hidden" name="inquiry_id" value="{{ interaction.inquiry_id }}">
-                    <button type="submit" name="submit_button" value="accepted">Accepted</button>
-                  </form>
-                </th>
-                  
-                
+                <td scope="col">{{ interaction.request }}</td>
+                <td scope="col">{{ interaction.exp_date }}</td>
+                <td scope="col">{{ interaction.lending_exp_date }}</td>
+                <td scope="col">
+                    {% if interaction.img_path %}
+                        <h3>Uploaded Image:</h3>
+                        <img src="{{ url_for('static', filename=interaction.img_path) }}" alt="Item Image" style="max-width: 200px;">
+                    {% else %}
+                        <p>No image uploaded yet.</p>
+                    {% endif %}
+                </td>
+                <td scope="col">{{ interaction.status }}</td>
+                {% if interaction.status == "pending" %}
+                    <td>
+                        <form action="/interactions" method="POST">
+                            <input type="hidden" name="inquiry_id" value="{{ interaction.inquiry_id }}">
+                            <button type="submit" name="receiveButton">Received item?</button>
+                        </form>
+                    </td>
+                {% elif interaction.status == "in progress" %}
+                <td>
+                    <p>
+                        Please return your item according to your lender!
+                    </p>
+                </td>
+                {% elif interaction.status == "late" %}
+                    <td>
+                        <form action="/interactions" method="post">
+                            <button class = "delete-button">Delete</button>
+                            <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value={{interaction.inquiry_id}}>
+                        </form>
+                    </td>
+                {% elif interaction.status == "completed" %}
+                    <td>
+                        <form action="/interactions" method="post">
+                            <button class = "delete-button">Delete</button>
+                            <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value={{interaction.inquiry_id}}>
+                        </form>
+                    </td>
+                {% endif %}
             </tr>
         {% endfor %}
         </tbody>
       </table>
+
+      <h3>What I'm lending</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Request:</th>
+            <th scope="col">Deadline for me to send my item:</th>
+            <th scope="col">Item's return date: </th>
+            <th scope="col">Photo: </th>
+            <th scope="col">Status: </th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for interaction in lender_interactions %}
+            <tr>
+                <td scope="col">{{ interaction.request }}</th>
+                <td scope="col">{{ interaction.exp_date }}</th>
+                <td scope="col">{{ interaction.lending_exp_date }}</th>
+                <td scope="col">
+                    {% if interaction.img_path %}
+                        <h3>Uploaded Image:</h3>
+                        <img src="{{ url_for('static', filename=interaction.img_path) }}" alt="Item Image" style="max-width: 200px;">
+                    {% else %}
+                        <p>No image uploaded yet.</p>
+                    {% endif %}
+                </th>
+                <td scope="col">{{ interaction.status }}</th>
+                {% if interaction.status == "pending" %}
+                    <td>
+                        <p>
+                            Please send your item over by the expiration date!
+                        </p>>
+                {% elif interaction.status == "in progress" %}
+                <td>
+                    <form action="/interactions" method="POST">
+                        <input type="hidden" name="inquiry_id" value="{{ interaction.inquiry_id }}">
+                        <button type="submit" name="returnButton">Borrower returned item?</button>
+                    </form>
+                </td>
+                {% elif interaction.status == "lost" %}
+                    <td>
+                        <form action="/interactions" method="post">
+                            <button class = "delete-button">Delete</button>
+                            <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value={{interaction.inquiry_id}}>
+                        </form>
+                    </td>
+                {% elif interaction.status == "late" %}
+                    <td>
+                        <p>
+                            Your transaction is late!
+                        </p>
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
 {% endblock %}
