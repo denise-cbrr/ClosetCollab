@@ -54,6 +54,10 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+def get_lender_info(user_id):
+    db = get_db()
+    return db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -329,19 +333,21 @@ def inquiry(inquiry_id):
     #Checks if user is viewing their own post 
     curUser = session["user_id"]
     is_owner = inquiry["user_id"] == curUser
-    print("what")
+    
     if request.method == "POST":
         if "replyResponse" in request.form:
             reply = request.form.get("replyResponse")
             curUser = session["user_id"]
-            
+            lending_exp_date = request.form.get("lending_exp_date")
+
             file_path = upload_image("replyPic", "RESPONSES_UPLOAD")
+
+            #file_path = upload_image("replyPic", "RESPONSES_UPLOAD")
             
             db.execute(
-                "INSERT INTO responses (inquiry_id, prosp_Lender_id, reply, img_path) VALUES (?, ?, ?, ?)",
-                (inquiry_id, curUser, reply, file_path)
+                "INSERT INTO responses (inquiry_id, prosp_Lender_id, reply, img_path, lending_exp_date) VALUES (?, ?, ?, ?, ?)",
+                (inquiry_id, curUser, reply, file_path, lending_exp_date)
             )
-            
         else:
             accepted_id = request.form.get("accepted_id")
             if accepted_id:
@@ -351,7 +357,7 @@ def inquiry(inquiry_id):
                 update = db.execute("INSERT INTO interactions (inquiry_id, status, lender_id, user_id) VALUES (?, ?, ?, ?)", 
                 (inquiry_id, "pending", lenderId, curUser))
 
-                lender_info = db.execute("SELECT * FROM users WHERE id = ?", (lenderId, )).fetchone()
+                lender_info = get_lender_info(lenderId)
 
                 # Get all other responses in that inquiries that will need to be deleted from the database
                 to_be_deleted = db.execute("SELECT * FROM responses WHERE inquiry_id = ? AND id != ?", (inquiry_id, accepted_id)).fetchall()
@@ -362,14 +368,17 @@ def inquiry(inquiry_id):
                 db.execute("UPDATE inquiries SET accepted = 'yes' WHERE id = ?", (inquiry_id, ))
                 print(f"Updating inquiry with id {inquiry_id} to accepted = 'yes'")
                 db.commit()
+
                 return render_template("accepted_inquiry.html", lender_info=lender_info)
             else:
                 # Deletes the responses that the user declines
                 declined_ids = request.form.get("declined_ids").split(',')
-                
+            
                 for id in declined_ids:
                     db.execute("DELETE FROM responses WHERE id = ?", (id, ))
-            
+    
+    db.execute("DELETE FROM responses WHERE lending_exp_date < CURRENT_DATE")
+    db.execute("DELETE FROM inquiries WHERE accepted ='no' AND exp_date < CURRENT_DATE")
     responses = db.execute(
         "SELECT responses.*, users.username AS lender_username FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.inquiry_id = ? ORDER BY responses.time_published DESC", (inquiry_id, )).fetchall();
         #"SELECT * FROM responses WHERE inquiry_id = ? ORDER BY time_published DESC", (inquiry_id,)
@@ -389,29 +398,36 @@ def inquiry(inquiry_id):
     
     
         
-        
+    inquiry_accepted = db.execute("SELECT accepted FROM inquiries WHERE id = ?", (inquiry_id, )).fetchone()[0]
     db.commit()
-
-    return render_template("inquiry.html", responses=responses, inquiry=inquiry, is_owner=is_owner)
+    if inquiry_accepted == 'yes':
+        lenderId = db.execute("SELECT lender_id FROM interactions WHERE inquiry_id = ?", (inquiry_id, )).fetchone()[0]
+        lender_info = get_lender_info(lenderId)
+        return render_template("accepted_inquiry.html", lender_info=lender_info)
+    else:
+        return render_template("inquiry.html", responses=responses, inquiry=inquiry, is_owner=is_owner)
 
 
  
 @app.route("/profile", methods=["GET", "POST"])
 def profile():
+    db = get_db()
     if request.method == "POST":
-        
-        file_path = upload_image("profilePic", "PROFILE_UPLOAD")            
-        db = get_db()
-        db.execute("UPDATE users SET img_path = ? WHERE id = ?", (file_path, session["user_id"]))
-        db.commit()
+        #Deals with photos
+        if "profilePic" in request.form:
+            file_path = upload_image("profilePic", "PROFILE_UPLOAD")            
+            db.execute("UPDATE users SET img_path = ? WHERE id = ?", (file_path, session["user_id"]))
+        # Triggered when user presses delete, and this will remove that inquiry from the table
+        elif "inquiry_id_delete" in request.form:
+            inquiry_id_delete = request.form.get("inquiry_id_delete")
+            db.execute("DELETE FROM inquiries WHERE id = ?", (inquiry_id_delete, ))
             
-
         #return redirect(url_for('download_file', name=filename))
             
     db = get_db()
     curUser = session["user_id"]
     inquiries = db.execute(
-        "SELECT * FROM inquiries WHERE user_id = ?", (curUser, )).fetchall();
+        "SELECT * FROM inquiries WHERE user_id = ? ORDER BY exp_date DESC", (curUser, )).fetchall();
     
     user = db.execute(
         "SELECT name, username, college FROM users WHERE id = ?", (curUser, )).fetchone();
@@ -436,7 +452,7 @@ def profile():
         #picture_path = None
     
     #print(f"path: {picture_path}")
-    
+    db.commit()
     return render_template("profile.html", inquiries=inquiries, user=user, picture=img_path)
     #picture = url_for('return_image', table="users", id=curUser) 
     #print(f"picture url: {picture}")

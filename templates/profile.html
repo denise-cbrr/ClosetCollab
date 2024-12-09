@@ -24,7 +24,7 @@
             <div class="modal-body">
                 <form action="/profile" method="post" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <input name="profilePic" placeholder="Image: " type="file" accept="image/*" >
+                        <input name="profilePic" placeholder="Image: " type="file" accept="image/*">
                     </div>
                     <button class="btn btn-primary" type="submit">Upload</button>
                 </form>
@@ -70,11 +70,22 @@
                     <tr>
                         <td>{{inquiry.request}}</td>
                         <td>{{inquiry.exp_date}}</td>
+                        {% if inquiry.accepted == "yes" %}
+                            <td>ACCEPTED</td>
+                        {% else %}
+                            <td>WAITING</td>
+                        {% endif %}
                         <!-- Button that user presses to enter a inquiry reply-->
                         <td>
                             <a href="{{ url_for('inquiry', inquiry_id=inquiry.id) }}">
                                 <button type="button">See your replies!</button>
                             </a>
+                        </td>
+                        <td>
+                            <form action="/profile" method="post">
+                                <button class = "delete-button">Delete</button>
+                                <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value={{inquiry.id}}>
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}

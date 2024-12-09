@@ -5,7 +5,8 @@
 
 {% block main %}
     <h3>{{inquiry.request}}</h3>
-    <h2>Expiration Date: {{inquiry.exp_date}}</h2>
+    <h2>Date your inquiry will expire by: {{inquiry.exp_date}}</h2>
+    {% if not is_owner %}
     <!-- Button trigger modal (just something random from bootstrap) -->
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
         Have an item to lend out?
@@ -25,7 +26,8 @@
                     <div class="mb-3">
                         <input class="form-control mx-auto w-auto" name="replyResponse" placeholder="Describe your item" type="text" required>
                         <p>Upload a picture!</p>
-                            <input name="replyPic" placeholder="Image: " type="file" accept="image/*" required >
+                            <input name="replyPic" placeholder="Image: " type="file" accept="image/*" required>
+                        <input class="form-control mx-auto w-auto" name="lending_exp_date" placeholder="Date you want your item back!" type="date" required>
                     </div>
                     <button class="btn btn-primary" type="submit">Submit here!</button>
                 </form>
@@ -36,35 +38,40 @@
         </div>
         </div>
     </div>
-
-    {% for response in responses %}
-        <!-- Im not sure why the code doesn't let me store it without the "reply-"-->
-        <div class = "reply_card" id="reply-{{ response.id }}">
-            <p>{{response.lender_username}}: {{response.reply}}</p>
-            {% if response.img_path %}
-                <h3>Uploaded Image:</h3>
-                <p>{{response.img_path}}</p>
-                <img src="{{ url_for('static', filename=response.img_path) }}" alt="User Image" style="max-width: 200px;">
-            {% else %}
-                <p>No image uploaded yet.</p>
-            {% endif %}
-            <!-- Only shows buttons if the current user is viewing their own inquiries-->
-            {% if is_owner %}
-                <button class="accept-btn" data-id="{{ response.id }}">Accept</button>
-                <button class="decline-btn" data-id="{{ response.id }}">Decline</button>
-            {% endif %}
-        </div>
-    {% endfor %}
-
-    <!-- we could create a pop up that asks the user to verify that they understand, and then there's an option for users to say "don't show up again" but that can be a less important thing-->
-    {% if is_owner %}
-        <form id="confirm-selection-form" action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post">
-            <button class="confirm-accept-btn">Confirm your selection! (Please note, you will not be able to change this)</button>
-            <p>Accepted Reply ID: {{ acceptedReplyId }}</p>
-            <input type="hidden" id="accepted-id-input" name="accepted_id" value="">
-            <input type="hidden" id="declined-ids-input" name="declined_ids" value="">
-        </form>
     {% endif %}
+    {% if responses %}
+        {% for response in responses %}
+            <!-- Im not sure why the code doesn't let me store it without the "reply-"-->
+            <div class = "reply_card" id="reply-{{ response.id }}">
+                <p>{{response.lender_username}}: {{response.reply}}</p>
+                <p>lending deadline: {{response.lending_exp_date}}</p>
+                {% if response.img_path %}
+                    <h3>Uploaded Image:</h3>
+                    <p>{{response.img_path}}</p>
+                <img src="{{ url_for('static', filename=response.img_path) }}" alt="User Image" style="max-width: 200px;">
+                {% else %}
+                    <p>No image uploaded yet.</p>
+                {% endif %}
+                <!-- Only shows buttons (including to confirm) if the current user is viewing their own inquiries-->
+                {% if is_owner %}
+                    <button class="accept-btn" data-id="{{ response.id }}">Accept</button>
+                    <button class="decline-btn" data-id="{{ response.id }}">Decline</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+        {% if is_owner %}
+            <form id="confirm-selection-form" action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post">
+                <button class="confirm-accept-btn">Confirm your selection! (Please note, you will not be able to change this)</button>
+                <input type="hidden" id="accepted-id-input" name="accepted_id" value="">
+                <input type="hidden" id="declined-ids-input" name="declined_ids" value="">
+            </form>
+        {% endif %}
+    {% else %}
+            {% if is_owner %}
+                <p>Waiting... no responses yet... the wait will be worthwhile... </p>
+            {% endif %}
+    {% endif %}
+    <!-- we could create a pop up that asks the user to verify that they understand, and then there's an option for users to say "don't show up again" but that can be a less important thing-->
 
     <script>
         // Refreshes on every reload
