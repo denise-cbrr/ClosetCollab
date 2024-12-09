@@ -86,6 +86,28 @@ def upload_image(img_name, folder_name):
     
     return file_path
 
+# Function for image uploads
+def upload_image(img_name, folder_name):
+    
+    if img_name not in request.files:
+            return apology ("No image uploaded", 400)
+        
+    file = request.files[img_name]
+        
+    if not file.filename:
+        return apology("No selected file.", 400)
+        
+    # saving the file to the server     
+    if not allowed_file(file.filename):
+        return apology("File type not allowed.", 400)
+        
+    filename = secure_filename(file.filename)
+    
+    file_path = os.path.join(app.config[folder_name], filename)
+    file.save(file_path)
+    
+    return file_path
+
 # Function to close the database connection
 @app.teardown_appcontext
 def close_db(exception):
@@ -382,6 +404,8 @@ def inquiry(inquiry_id):
 
     return render_template("inquiry.html", responses=responses, inquiry = inquiry, is_owner=is_owner)
 
+
+ 
 @app.route("/profile", methods=["GET", "POST"])
 def profile():
     if request.method == "POST":
@@ -389,29 +413,79 @@ def profile():
         if 'image' not in request.files:
             return apology ("No image uploaded", 400)
         
-        file = request.files['image']
-        
-        if file.filename == '':
-            return apology("No selected file.", 400)
-        
-        # saving the file to the server
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('download_file', name=filename))
-        
+        file_path = upload_image("profilePic", "PROFILE_UPLOAD")            
+        db = get_db()
+        db.execute("UPDATE users SET img_path = ? WHERE id = ?", (file_path, session["user_id"]))
+        db.commit()
+            
+
+        #return redirect(url_for('download_file', name=filename))
+            
     db = get_db()
     curUser = session["user_id"]
     inquiries = db.execute(
-        "SELECT * FROM inquiries WHERE user_id = ? AND accepted = 'no'", (curUser, )).fetchall();
-    return render_template("profile.html", inquiries = inquiries)
+        "SELECT * FROM inquiries WHERE user_id = ?", (curUser, )).fetchall();
+    
+    user = db.execute(
+        "SELECT name, username, college FROM users WHERE id = ?", (curUser, )).fetchone();
+    
+    pic = db.execute("SELECT img_path FROM users WHERE id = ?", (curUser, )).fetchone();
+    #cursor.execute("SELECT img_path, file_type FROM users WHERE id = ?", (curUser, ))
+    
+    if pic:
+        img_path = pic[0]  # Access the first column (img_path)
+    
+    print(img_path)
+    
+    #row = cursor.fetchone()
+    #if row:
+        #imgdata = row[0]
+        #file_extension = row[1]
+    
+    #if imgdata:
+        #with open(f'retrieved_image{file_extension}', 'wb') as f:
+            #picture_path = f.write(imgdata)
+    #else:
+        #picture_path = None
+    
+    #print(f"path: {picture_path}")
+    
+    return render_template("profile.html", inquiries=inquiries, user=user, picture=img_path)
+    #picture = url_for('return_image', table="users", id=curUser) 
+    #print(f"picture url: {picture}")
+            
+    #return render_template("profile.html", inquiries=inquiries, user=user, picture=picture)
 
 
-@app.route('/uploads/<name>')
+
+@app.route('/profile/<name>')
 def download_file(name):
-    return send_from_directory(app.config["UPLOAD_FOLDER"], name)
+    return send_from_directory(app.config["PROFILE_UPLOAD"], name)
+
+#@app.route('/return_image/<string:table>/<int:id>')
+#def return_image(table, id):
+    #valid_tables = {"users", "responses"}
+    
+    #if table not in valid_tables:
+        #return apology ("can't find table", 400)
+     
+    #query = f"SELECT img_data, file_type FROM {table} WHERE id = ?"
+    
+    #db = get_db()
+    #cursor = db.cursor()
+    #cursor.execute(query, (id,)).fetchone()
+    
+    #row = cursor.fetchone()
+    #if not row:
+       #return apology("no image found")
+    
+    #imgbin = row[0]
+    #file_extension = row[1]
+    
+    #mime_type = f"image/{file_extension.strip('.')}"
+        
+    #return Response(imgbin, mimetype=mime_type)
+    
 
 
 @app.route("/interactions")
@@ -427,3 +501,4 @@ def interactions():
         
         
     return render_template("interactions.html")
+

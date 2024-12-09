@@ -24,7 +24,7 @@
             <div class="modal-body">
                 <form action="/profile" method="post" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <input name="image" placeholder="Image: " type="file" accept="image/*" required >
+                        <input name="profilePic" placeholder="Image: " type="file" accept="image/*" >
                     </div>
                     <button class="btn btn-primary" type="submit">Upload</button>
                 </form>
@@ -37,8 +37,24 @@
         </div>
     </div>
 
-    <h2>Uploaded Image:</h2>
-    <img id="uploadedImage" style="max-width: 500px; display:none;" />
+    <div class="mb-3">
+        <table>
+            <tbody>
+                <tr>
+                    <td>{{user.name}}</td>
+                    <td>{{user.username}}</td>
+                    <td>{{user.college}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    {% if picture %}
+        <h3>Uploaded Image:</h3>
+        <img src="{{ picture }}" alt="User Image" style="max-width: 200px;">
+    {% else %}
+        <p>No image uploaded yet.</p>
+    {% endif %}
 
     <div class="mb-3">
         <table>

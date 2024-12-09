@@ -21,7 +21,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post">
+                <form action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" enctype="multipart/form-data">
                     <div class="mb-3">
                         <input class="form-control mx-auto w-auto" name="replyResponse" placeholder="Describe your item" type="text" required>
                         <p>Upload a picture!</p>
