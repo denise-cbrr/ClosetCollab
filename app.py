@@ -38,7 +38,7 @@ app = Flask(__name__)
 # Folders where uploaded images will be stored
 PROFILE_UPLOAD = 'profile'
 RESPONSES_UPLOAD = 'responses'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app.config['PROFILE_UPLOAD'] = PROFILE_UPLOAD
 app.config['RESPONSES_UPLOAD'] = RESPONSES_UPLOAD
@@ -90,7 +90,7 @@ def upload_image(img_name, folder_name):
 def upload_image(img_name, folder_name):
     
     if img_name not in request.files:
-            return apology ("No image uploaded", 400)
+        return apology ("No image uploaded", 400)
         
     file = request.files[img_name]
         
@@ -256,7 +256,7 @@ def feed():
             "INSERT INTO inquiries (request, exp_date, user_id) VALUES (?, ?, ?)",
             (userRequest, expirationDate, curUser)
         )
-        
+
         inquiry_id = db.execute(
             "SELECT id FROM inquiries ORDER BY id DESC LIMIT 1"
         ).fetchone()[0] 
@@ -399,19 +399,22 @@ def inquiry(inquiry_id):
         # change the status in the original feed table
         # return user to a new html page "Please refer to interactions table, here's other user's email"
         # for declines, delete all SQL queries FROM replies (they are an array of ids)
+    
+    #pics = [row['img_path'] for row in db.execute("SELECT img_path FROM responses WHERE inquiry_id = ?", (inquiry_id,)).fetchall()]
+    #print(pics)
+    for response in responses:
+        print(response['img_path'])
+        
         
     db.commit()
 
-    return render_template("inquiry.html", responses=responses, inquiry = inquiry, is_owner=is_owner)
+    return render_template("inquiry.html", responses=responses, inquiry=inquiry, is_owner=is_owner)
 
 
  
 @app.route("/profile", methods=["GET", "POST"])
 def profile():
     if request.method == "POST":
-        
-        if 'image' not in request.files:
-            return apology ("No image uploaded", 400)
         
         file_path = upload_image("profilePic", "PROFILE_UPLOAD")            
         db = get_db()
@@ -461,6 +464,10 @@ def profile():
 @app.route('/profile/<name>')
 def download_file(name):
     return send_from_directory(app.config["PROFILE_UPLOAD"], name)
+
+@app.route('/responses/<name>')
+def uploaded_file(name):
+    return send_from_directory(app.config["RESPONSES_UPLOAD"], name)
 
 #@app.route('/return_image/<string:table>/<int:id>')
 #def return_image(table, id):

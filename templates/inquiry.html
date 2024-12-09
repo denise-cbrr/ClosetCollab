@@ -36,12 +36,17 @@
         </div>
         </div>
     </div>
+
     {% for response in responses %}
         <!-- Im not sure why the code doesn't let me store it without the "reply-"-->
         <div class = "reply_card" id="reply-{{ response.id }}">
             <p>{{response.lender_username}}: {{response.reply}}</p>
-            <h3>Uploaded Image:</h3>
-            <img src="{{ response.img_path }}" alt="Item Image" style="max-width: 200px;">
+            {% if response.img_path %}
+                <h3>Uploaded Image:</h3>
+                <img src="{{ response.img_path }}" alt="User Image" style="max-width: 200px;">
+            {% else %}
+                <p>No image uploaded yet.</p>
+            {% endif %}
             <!-- Only shows buttons if the current user is viewing their own inquiries-->
             {% if is_owner %}
                 <button class="accept-btn" data-id="{{ response.id }}">Accept</button>
