@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from flask import Flask, flash, redirect, render_template, request, session, url_for, send_from_directory, g
+from flask import Flask, flash, redirect, render_template, request, session, url_for, send_from_directory, Response, g
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -27,6 +27,7 @@ from helpers import apology, login_required
     #tags: anything from style to size
 
 #interactions
+    #user_id
     #inquiry_id
     #status: text (delivered, received, etc.)
     #lender_id: user_id of lender
@@ -34,14 +35,18 @@ from helpers import apology, login_required
 # Configure application
 app = Flask(__name__)
 
-# Folder where uploaded images will be stored
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+# Folders where uploaded images will be stored
+PROFILE_UPLOAD = 'profile'
+RESPONSES_UPLOAD = 'responses'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'gif'}
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['PROFILE_UPLOAD'] = PROFILE_UPLOAD
+app.config['RESPONSES_UPLOAD'] = RESPONSES_UPLOAD
+
 
 # Ensure upload folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(PROFILE_UPLOAD, exist_ok=True)
+os.makedirs(RESPONSES_UPLOAD, exist_ok=True)
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
@@ -58,6 +63,28 @@ def get_db():
         g.db = sqlite3.connect('closet.db')
         g.db.row_factory = sqlite3.Row  # Allows access to columns by name
     return g.db
+
+# Function for image uploads
+def upload_image(img_name, folder_name):
+    
+    if img_name not in request.files:
+            return apology ("No image uploaded", 400)
+        
+    file = request.files[img_name]
+        
+    if not file.filename:
+        return apology("No selected file.", 400)
+        
+    # saving the file to the server     
+    if not allowed_file(file.filename):
+        return apology("File type not allowed.", 400)
+        
+    filename = secure_filename(file.filename)
+    
+    file_path = os.path.join(app.config[folder_name], filename)
+    file.save(file_path)
+    
+    return file_path
 
 # Function to close the database connection
 @app.teardown_appcontext
@@ -225,6 +252,7 @@ def feed():
                              JOIN inquiries ON users.id = inquiries.user_id 
                              JOIN tags ON inquiries.id = tags.inquiry_id
                              WHERE inquiries.exp_date >= CURRENT_DATE 
+                             AND inquiries.accepted = 'no'
                              GROUP BY inquiries.id 
                              ORDER BY inquiries.time_published DESC;""").fetchall()
         
@@ -260,6 +288,7 @@ def feed():
                 JOIN users ON users.id = inquiries.user_id 
                 JOIN tags ON inquiries.id = tags.inquiry_id 
                 WHERE tags.tag IN ({placeholders})
+                AND inquiries.accepted = 'no'
                 AND inquiries.exp_date >= CURRENT_DATE 
                 GROUP BY inquiries.id HAVING COUNT(DISTINCT tags.tag) = ? 
                 ORDER BY inquiries.time_published DESC;"""
@@ -279,6 +308,7 @@ def feed():
                                  JOIN inquiries ON users.id = inquiries.user_id 
                                  JOIN tags ON inquiries.id = tags.inquiry_id
                                  WHERE inquiries.exp_date >= CURRENT_DATE 
+                                 AND inquiries.accepted = 'no'
                                  GROUP BY inquiries.id 
                                  ORDER BY inquiries.time_published DESC;""").fetchall()
         
@@ -295,19 +325,59 @@ def inquiry(inquiry_id):
     #Checks if user is viewing their own post 
     curUser = session["user_id"]
     is_owner = inquiry["user_id"] == curUser
-
+    print("what")
     if request.method == "POST":
-        reply = request.form.get("replyResponse")
-        curUser = session["user_id"]
-        response = db.execute(
-            "INSERT INTO responses (inquiry_id, prosp_Lender_id, reply) VALUES (?, ?, ?)",
-            (inquiry_id, curUser, reply)
-        )
+        if "replyResponse" in request.form:
+            reply = request.form.get("replyResponse")
+            curUser = session["user_id"]
+            
+            file_path = upload_image("replyPic", "RESPONSES_UPLOAD")
+            
+            db.execute(
+                "INSERT INTO responses (inquiry_id, prosp_Lender_id, reply, img_path) VALUES (?, ?, ?, ?)",
+                (inquiry_id, curUser, reply, file_path)
+            )
+            
+        else:
+            accepted_id = request.form.get("accepted_id")
+            if accepted_id:
+                # LOL i have so many print statements cuz the things kept on breaking
+                # I avoided joining interactions with inquiries, so for now, there is a slight duplication of having user_id be in interactions too
+                lenderId = db.execute("SELECT prosp_Lender_id FROM responses WHERE id = ?", (accepted_id, )).fetchone()[0]
+                update = db.execute("INSERT INTO interactions (inquiry_id, status, lender_id, user_id) VALUES (?, ?, ?, ?)", 
+                (inquiry_id, "pending", lenderId, curUser))
 
+                lender_info = db.execute("SELECT * FROM users WHERE id = ?", (lenderId, )).fetchone()
+
+                # Get all other responses in that inquiries that will need to be deleted from the database
+                to_be_deleted = db.execute("SELECT * FROM responses WHERE inquiry_id = ? AND id != ?", (inquiry_id, accepted_id)).fetchall()
+                if to_be_deleted:
+                    for row in to_be_deleted:
+                        db.execute("DELETE FROM responses WHERE id = ?", (row['id'], ))
+
+                db.execute("UPDATE inquiries SET accepted = 'yes' WHERE id = ?", (inquiry_id, ))
+                print(f"Updating inquiry with id {inquiry_id} to accepted = 'yes'")
+                db.commit()
+                return render_template("accepted_inquiry.html", lender_info=lender_info)
+            else:
+                # Deletes the responses that the user declines
+                declined_ids = request.form.get("declined_ids").split(',')
+                
+                for id in declined_ids:
+                    db.execute("DELETE FROM responses WHERE id = ?", (id, ))
+            
     responses = db.execute(
         "SELECT responses.*, users.username AS lender_username FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.inquiry_id = ? ORDER BY responses.time_published DESC", (inquiry_id, )).fetchall();
         #"SELECT * FROM responses WHERE inquiry_id = ? ORDER BY time_published DESC", (inquiry_id,)
         #).fetchall()
+        
+        #another to-do = check all the expiration dates 
+        # if user clicks an accept, the rest automatically deletes and needs to be removed from SQL query
+        # if user clicks accept, add to interactions table and 
+        # change the status in the original feed table
+        # return user to a new html page "Please refer to interactions table, here's other user's email"
+        # for declines, delete all SQL queries FROM replies (they are an array of ids)
+        
     db.commit()
 
     return render_template("inquiry.html", responses=responses, inquiry = inquiry, is_owner=is_owner)
@@ -335,7 +405,7 @@ def profile():
     db = get_db()
     curUser = session["user_id"]
     inquiries = db.execute(
-        "SELECT * FROM inquiries WHERE user_id = ?", (curUser, )).fetchall();
+        "SELECT * FROM inquiries WHERE user_id = ? AND accepted = 'no'", (curUser, )).fetchall();
     return render_template("profile.html", inquiries = inquiries)
 
 
@@ -357,4 +427,3 @@ def interactions():
         
         
     return render_template("interactions.html")
-
