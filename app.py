@@ -370,6 +370,7 @@ def feed():
         return render_template("feed.html", results=results)
 
 @app.route("/inquiry/<int:inquiry_id>", methods=["GET", "POST"])
+@login_required
 def inquiry(inquiry_id):
     """Generates a page for each inquiry to see its individual responses/selections"""
 
@@ -560,20 +561,26 @@ def interactions():
     borrow_interactions = db.execute(
     """
         SELECT
-            inquiries.request AS request, inquiries.exp_date AS exp_date, interactions.*, responses.lending_exp_date AS lending_exp_date, responses.img_path AS img_path
+            inquiries.request AS request, inquiries.exp_date AS exp_date, interactions.*, 
+            responses.lending_exp_date AS lending_exp_date, responses.img_path AS item_img, 
+            users.name AS name, users.username AS username, users.img_path AS user_img
             FROM inquiries 
             JOIN interactions ON inquiries.id = interactions.inquiry_id
             JOIN responses ON inquiries.id = responses.inquiry_id
+            JOIN users ON interactions.lender_id = users.id
             WHERE interactions.user_id = ?
     """,(curUser, )).fetchall()
     
     # Retrieve all interactions where the current user is lending an item to someone else    
     lender_interactions = db.execute(
         """SELECT
-            inquiries.request AS request, responses.img_path AS img_path, interactions.*, responses.lending_exp_date AS lending_exp_date
+            inquiries.request AS request, interactions.*, 
+            responses.img_path AS img_path, responses.lending_exp_date AS lending_exp_date,
+            users.name AS name, users.username AS username, users.img_path AS user_img
             FROM inquiries 
             JOIN interactions ON inquiries.id = interactions.inquiry_id
             JOIN responses ON inquiries.id = responses.inquiry_id
+            JOIN users ON interactions.user_id = users.id
             WHERE interactions.lender_id = ?
     """,(curUser, )).fetchall()
 

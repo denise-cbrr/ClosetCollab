@@ -4,87 +4,118 @@
 {% endblock %}
 
 {% block main %}
-    <h1>My Profile</h1>
-    <!-- Work on uploading pictures, lowkey a last min feature-->
-    <h2>Update my profile picture!</h2>
+
+<div class="profile-container">
+    <h1 class="page-title">My Profile</h1>
     
-    <!-- Button trigger modal (just something random from bootstrap) -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        Update Profile Picture
-    </button>
     
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Update Profile Picture</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="/profile" method="post" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <input name="profilePic" placeholder="Image: " type="file" accept="image/*">
-                    </div>
-                    <button class="btn btn-primary" type="submit">Upload</button>
-                </form>
-            </div>
-            <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary">Save changes</button>
-            </div>
+    <div class="profile-picture-container">
+        {% if picture %}
+        <div class="profile-image">
+            <img src="{{ url_for('static', filename=picture) }}" alt="User Image" class="profile-image">
         </div>
+        {% else %}
+        <p>No image uploaded yet.</p>
+        {% endif %}
+        <button class="btn-primary" id="updatePicture">
+            Update Profile Picture
+        </button>
+    </div>
+    
+    <div class="modal fade" id="updPicMod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Update Profile Picture</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/profile" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <input name="profilePic" placeholder="Image: " type="file" accept="image/*" class="form-control">
+                        </div>
+                        <button class="btn-primary" type="submit">Upload</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-primary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn-primary">Save changes</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="mb-3">
-        <table>
+    <div class="profile-info">
+        <table class="profile-table">
             <tbody>
                 <tr>
-                    <td>name: {{user.name}}</td>
-                    <td>username: {{user.username}}</td>
-                    <td>college: {{user.college}}</td>
+                    <td>Name:</td>
+                    <td>{{user.name}}</td>
+                </tr>
+                <tr>
+                    <td>Username:</td>
+                    <td>{{user.username}}</td>
+                </tr>
+                <tr>
+                    <td>College:</td>
+                    <td>{{user.college}}</td>
                 </tr>
             </tbody>
         </table>
     </div>
 
-    {% if picture %}
-        <h3>Uploaded Image:</h3>
-        <p>{{ url_for('static', filename=picture) }}</p>
-        <img src="{{ url_for('static', filename=picture) }}" alt="User Image" style="max-width: 200px;">
-    {% else %}
-        <p>No image uploaded yet.</p>
-    {% endif %}
-
-    <div class="mb-3">
-        <table>
+    <div class="inquiries-container">
+        <h2 class="section-title">My Inquiries</h2>
+        <table class="inquiry-table">
             <thead>
                 <tr>
-                    <th>My Inquiries</th>
+                    <th>Request</th>
+                    <th>Expiration Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- I think we can look into creating like cards to represent these things? like ui fizz but multiple per row-->
                 {% for inquiry in inquiries %}
-                    <tr>
-                        <td>{{inquiry.request}}</td>
-                        <td>{{inquiry.exp_date}}</td>
-                        {% if inquiry.accepted == "yes" %}
-                            <td>ACCEPTED</td>
-                        {% else %}
-                            <td>WAITING</td>
-                        {% endif %}
-                        <!-- Button that user presses to enter a inquiry reply-->
-                        <td>
-                            <a href="{{ url_for('inquiry', inquiry_id=inquiry.id) }}">
-                                <button type="button">See your replies!</button>
-                            </a>
-                        </td>
-                    </tr>
+                <tr>
+                    <td>{{inquiry.request}}</td>
+                    <td>{{inquiry.exp_date}}</td>
+                    {% if inquiry.accepted == "yes" %}
+                    <td><span class="status accept">ACCEPTED</span></td>
+                    {% else %}
+                    <td><span class="status pending">WAITING</span></td>
+                    {% endif %}
+                    <td>
+                        <a href="{{ url_for('inquiry', inquiry_id=inquiry.id) }}">
+                            <button type="button" class="btn-primary">View replies!</button>
+                        </a>
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+</div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+       const addButton = document.querySelector('#updatePicture');
+       const modal = document.querySelector('#updPicMod');
+       const closeBtn = document.querySelector('.btn-close');
+    
+       addButton.addEventListener('click', () => {
+           modal.classList.add('show');
+       });
+    
+       closeBtn.addEventListener('click', () => {
+           modal.classList.remove('show');
+       });
+    
+       window.addEventListener('click', (e) => {
+           if (e.target === modal) {
+               modal.classList.remove('show');
+           }
+       });
+    });
+    </script>
 {% endblock %}

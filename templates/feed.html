@@ -5,6 +5,63 @@
 <div class="page-container">
    <h1 class="page-title">Feed</h1>
 
+   <div class="new-inquiry-container">
+    <button class="btn-primary" id="addInquiryBtn">Add an Inquiry</button>
+</div>
+
+    <div class="modal" id="newInquiryModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add an inquiry!</h5>
+                    <button type="button" class="btn-close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('feed') }}" method="post">
+                        <div class="mb-3">
+                            <input class="form-control" name="userRequest" placeholder="Explain your request" type="text" required>
+                        </div>
+                        <div class="mb-3">
+                            <select name="style" class="form-select" multiple>
+                                <option disabled selected value="">Select styles</option>
+                                <option value="Formal">Formal</option>
+                                <option value="Casual">Casual</option>
+                                <option value="Streetwear">Streetwear</option>
+                                <option value="Athleisure">Athleisure</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <select name="size" class="form-select" required>
+                                <option disabled selected value="">Size</option>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <select name="item" class="form-select">
+                                <option disabled selected value="">Item type</option>
+                                <option value="Shirt">Shirt</option>
+                                <option value="Jacket">Jacket</option>
+                                <option value="Pants">Pants</option>
+                                <option value="Shoes">Shoes</option>
+                                <option value="Dress">Dress</option>
+                                <option value="Hat">Hat</option>
+                                <option value="Accessory">Accessory</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <input class="form-control" name="expirationDate" type="date" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Submit Request</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
    <div class="filter-container">
        <form action="{{ url_for('feed') }}" method="GET" class="filter-form">
            <div class="filter-group">
@@ -47,18 +104,18 @@
 
    <div class="inquiries-container">
        {% for result in results %}
-       <div class="inquiry-card fade-element">
+       <div class="inquiry-card">
            <div class="inquiry-header">
                <div class="inquiry-user">
                 {% if result.img_path %}
-                    <h3>Uploaded Image:</h3>
-                    <img src="{{ url_for('static', filename=result.img_path) }}" alt="Item Image" style="max-width: 200px;">
+                    <img src="{{ url_for('static', filename=result.img_path) }}" alt="Item Image" class="user-img">
                 {% else %}
                     <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
                 {% endif %}
                    <div class="inquiry-user-info">
-                       <h3 class="inquiry-username">{{ result.username }}</h3>
-                       <p class="inquiry-college">{{ result.college }}</p>
+                        <h3 class="name">{{result.name}}</h3>
+                       <p class="username">{{ result.username }}</p>
+                       <p class="college">{{ result.college }}</p>
                    </div>
                </div>
                <div class="inquiry-tags">
@@ -78,62 +135,7 @@
        {% endfor %}
    </div>
 
-   <div class="new-inquiry-container">
-       <button class="btn-primary" id="addInquiryBtn">Add an Inquiry</button>
-   </div>
-
-   <div class="modal" id="newInquiryModal">
-       <div class="modal-dialog">
-           <div class="modal-content">
-               <div class="modal-header">
-                   <h5 class="modal-title">Add an inquiry!</h5>
-                   <button type="button" class="btn-close"></button>
-               </div>
-               <div class="modal-body">
-                   <form action="{{ url_for('feed') }}" method="post">
-                       <div class="mb-3">
-                           <input class="form-control" name="userRequest" placeholder="Explain your request" type="text" required>
-                       </div>
-                       <div class="mb-3">
-                           <select name="style" class="form-select" multiple>
-                               <option disabled selected value="">Select styles</option>
-                               <option value="Formal">Formal</option>
-                               <option value="Casual">Casual</option>
-                               <option value="Streetwear">Streetwear</option>
-                               <option value="Athleisure">Athleisure</option>
-                           </select>
-                       </div>
-                       <div class="mb-3">
-                           <select name="size" class="form-select" required>
-                               <option disabled selected value="">Size</option>
-                               <option value="XS">XS</option>
-                               <option value="S">S</option>
-                               <option value="M">M</option>
-                               <option value="L">L</option>
-                               <option value="XL">XL</option>
-                           </select>
-                       </div>
-                       <div class="mb-3">
-                           <select name="item" class="form-select">
-                               <option disabled selected value="">Item type</option>
-                               <option value="Shirt">Shirt</option>
-                               <option value="Jacket">Jacket</option>
-                               <option value="Pants">Pants</option>
-                               <option value="Shoes">Shoes</option>
-                               <option value="Dress">Dress</option>
-                               <option value="Hat">Hat</option>
-                               <option value="Acessory">Acessory</option>
-                           </select>
-                       </div>
-                       <div class="mb-3">
-                           <input class="form-control" name="expirationDate" type="date" required>
-                       </div>
-                       <button type="submit" class="btn-primary">Submit Request</button>
-                   </form>
-               </div>
-           </div>
-       </div>
-   </div>
+   
 </div>
 
 <script>

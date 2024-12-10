@@ -3,13 +3,13 @@
 
 {% block main %}
 <div class="page-container">
-    <div class="inquiry-details fade-element">
+    <div class="inquiry-details-fade-element">
         <h2 class="h2">{{inquiry.request}}</h2>
         <p>Expires: {{inquiry.exp_date}}</p>
     </div>
 
     {% if not is_owner %}
-    <div class="response-container fade-element">
+    <div class="response-container-fade-element">
         <form action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" enctype="multipart/form-data" class="response-form">
             <div class="mb-3">
                 <textarea class="form-control" name="replyResponse" placeholder="Describe your item" required></textarea>
@@ -30,30 +30,37 @@
     {% if responses %}
     <div class="responses-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 0 auto;">
         {% for response in responses %}
-        <div class="response-card fade-element" style="flex: 0 0 calc(45% - 10px); min-width: 300px;" id="reply-{{ response.id }}">
+        <div class="interaction-card" style="flex: 0 0 calc(45% - 10px); min-width: 300px;" id="reply-{{ response.id }}">
             <div class="response-header">
-                <h3>{{ response.lender_username }}</h3>
+                {% if response.lender_img %}
+                    <img src="{{ url_for('static', filename=response.lender_img) }}" alt="User Image" class="user-img" style="width: 90px; height: 90px; margin-top: 20px;">
+                {% else %}
+                    <p>No image uploaded yet.</p>
+                {% endif %}
+                <h3>{{ response.lender_name }}</h3>
+                <h4>{{ response.lender_username }}</h4>
                 <p class="response-date">Return by: {{ response.lending_exp_date }}</p>
             </div>
             <p class="response-text">{{ response.reply }}</p>
             {% if response.img_path %}
             <div class="response-image">
-                <img src="{{ url_for('static', filename=response.img_path) }}" alt="Item Image">
+                <img src="{{ url_for('static', filename=response.img_path) }}" alt="Item Image" class="item-img">
             </div>
             {% endif %}
             {% if is_owner %}
             <div class="response-actions">
-                <button class="btn-primary accept-btn" data-id="{{ response.id }}">Accept</button>
-                <button class="btn-primary decline-btn" data-id="{{ response.id }}">Decline</button>
+                <button class="accept-btn" id="btn-primary" data-id="{{ response.id }}">Accept</button>
+                <button class="decline-btn" id="btn-primary" data-id="{{ response.id }}">Decline</button>
             </div>
             {% endif %}
         </div>
         {% endfor %}
     </div>
+    
 
     {% if is_owner %}
     <form id="confirm-selection-form" action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" class="confirmation-form">
-        <button class="btn-primary confirm-accept-btn">Confirm Selection</button>
+        <button class="confirm-accept-btn">Confirm Selection</button>
         <input type="hidden" id="accepted-id-input" name="accepted_id">
         <input type="hidden" id="declined-ids-input" name="declined_ids">
     </form>
@@ -63,70 +70,24 @@
         <p class="no-responses">No responses yet</p>
         {% endif %}
     {% endif %}
-</div>
+    </div>
+    
 
-<style>
-.response-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.response-card {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.response-image img {
-    max-width: 100%;
-    border-radius: 8px;
-    margin: 10px 0;
-}
-
-.response-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.accepted {
-    background-color: #4CAF50 !important;
-}
-
-.declined {
-    background-color: #f44336 !important;
-}
-
-.confirmation-form {
-    text-align: center;
-    margin: 20px 0;
-}
-
-@media (max-width: 768px) {
-    .response-card {
-        flex: 0 0 100% !important;
-    }
-}
-</style>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     let acceptedReplyId = null;
     let to_be_deleted = new Set();
 
-    document.querySelectorAll(".response-card").forEach(card => {
-        let id_for_sql = card.id.replace('reply-', '');
+    document.querySelectorAll(".interaction-card").forEach(card => {
+        let id_for_sql = parseInt(card.id.replace('reply-', ''), 10);
         const acceptBtn = card.querySelector(".accept-btn");
         const declineBtn = card.querySelector(".decline-btn");
 
         if (acceptBtn) {
             acceptBtn.addEventListener("click", () => {
+                declineBtn.classList.remove("declined");
+                
                 to_be_deleted.delete(id_for_sql);
 
                 if (acceptedReplyId) {
@@ -147,13 +108,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (declineBtn) {
             declineBtn.addEventListener("click", () => {
-                declineBtn.classList.add("declined");
                 
-                if (acceptedReplyId === id_for_sql) {
+                if (acceptedReplyId == id_for_sql) {
                     acceptBtn.classList.remove("accepted");
                     acceptedReplyId = null;
                 }
-
+                
+                declineBtn.classList.add("declined");
                 to_be_deleted.add(id_for_sql);
             });
         }
@@ -175,5 +136,25 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.response-container-fade-element');
+    const headerHeight = document.querySelector('header').offsetHeight;
+        
+    function checkScroll() {
+        fadeElements.forEach(element => {
+            const rect = element.getBoundingClientRect();
+            if (rect.top >= headerHeight && rect.bottom <= window.innerHeight) {
+                element.classList.add('fade-in');
+            } else {
+                element.classList.remove('fade-in');
+            }
+        });
+    }
+        
+    window.addEventListener('scroll', checkScroll);
+    window.addEventListener('resize', checkScroll);        checkScroll();
+});
+
 </script>
 {% endblock %}
