@@ -1,3 +1,4 @@
+<!-- Do we want the register/log in on both the nav bar and the home page?, also maybe we can extend layout if that works, but most of our stuff is inaccessible/goes bad without user_id :o-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,7 +59,6 @@
         {% block main %}
         <h2 class="h2">Welcome to Closet Collab!</h2>
         <p>Have you ever needed a "stitch to wear?" Wanted a fun new dress to wear to formal but couldn't get it last minute? Join your fellow Yalies on the hottest new outfit sharing website; Closet Collab! Post inquiries in those last minute times of need to borrow from other Yalies, and respond when you are willing to provide! Join Closet Collab below.</p>
-        
         <div class="form-container text-center">
             <a href="{{ url_for('register') }}" class="btn btn-primary">Join Now</a>
             <a href="{{ url_for('login') }}" class="btn btn-primary">Log In</a>

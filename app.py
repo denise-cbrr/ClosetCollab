@@ -10,11 +10,12 @@ from helpers import apology, login_required
 
 #Tables:
 #users table
-    #id: user's id
-    #username (unique)
-    #password: hashed
-    #college (one of 14) Yale residential colleges
-    #name
+    #id: user's id (uniquely defines each)
+    #username: unique and user created
+    #password: password to user's login
+    #college: (one of 14) Yale residential colleges
+    #name: user's name
+    #img_path: path to the image for the user's profile picture (Are we doing default ones??)
 
 #inquiries table
     #id: inquiry_id
@@ -56,53 +57,66 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-def get_lender_info(user_id):
-    db = get_db()
-    return db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-        
-# Function to get the database connection
+# Consulted: https://flask.palletsprojects.com/en/stable/tutorial/database/, for information on how to handle sqlite3 and flask outside of CS50
+# Retrieves database's connection (to perform SQL query searches)
 def get_db():
     """Opens a new database connection if one doesn't exist"""
     if 'db' not in g:
         g.db = sqlite3.connect('closet.db')
-        g.db.row_factory = sqlite3.Row  # Allows access to columns by name
+
+        # Makes it so that dictionary-like rows, accessible by their column names, are returned
+        g.db.row_factory = sqlite3.Row  
     return g.db
 
-# Function for image uploads
-def upload_image(img_name, folder_name):
-    
-    if img_name not in request.files:
-            return apology ("No image uploaded", 400)
-        
-    file = request.files[img_name]
-        
-    if not file.filename:
-        return apology("No selected file.", 400)
-        
-    # saving the file to the server     
-    if not allowed_file(file.filename):
-        return apology("File type not allowed.", 400)
-        
-    filename = secure_filename(file.filename)
-    
-    file_path = os.path.join(app.config[folder_name], filename)
-    print(file_path)
-    file.save(file_path)
-    
-    return os.path.relpath(file_path, STATIC_DIR)
-
-
+# Consulted: https://flask.palletsprojects.com/en/stable/tutorial/database/, for information on how to handle sqlite3 and flask outside of CS50
 # Function to close the database connection
+# Automatically called by Flask when a request is completed
 @app.teardown_appcontext
 def close_db(exception):
     """Closes the database connection at the end of the request"""
     db = g.pop('db', None)
+
+    # Checks whether a database connection was found; if so, closes it
     if db is not None:
         db.close()
+
+# Retrieves all information (available in the users table) about the user whose id is the parameter
+def get_lender_info(user_id):
+    db = get_db()
+    return db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+
+# Checks if the file extension is allowed
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        
+# Function for image uploads to return an img_path to be inserted into respective SQL tables
+def upload_image(img_name, folder_name):
+    
+    # Checks if there is an image uploaded
+    if img_name not in request.files:
+            return apology ("No image uploaded", 400)
+        
+    file = request.files[img_name]  
+    
+    # Double checks if there was a file selected
+    if not file.filename:
+        return apology("No selected file.", 400)
+        
+    # Checks if the file type is an allowed type     
+    if not allowed_file(file.filename):
+        return apology("File type not allowed.", 400)
+    
+    # Changes the filename into a safer version without any special characters 
+    filename = secure_filename(file.filename)
+    
+    # From the os library, joins the folder name and file name into a path
+    file_path = os.path.join(app.config[folder_name], filename)
+    print(file_path)
+    file.save(file_path)    # Saves the file to the path 
+    
+    #
+    return os.path.relpath(file_path, STATIC_DIR)
 
 @app.after_request
 def after_request(response):
@@ -112,12 +126,11 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-# Renders index.html, a page about our site with buttons to log in/register
+# Renders index.html, an about page where a user can also log in/register
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
-# Ensures user login is valid
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
@@ -141,12 +154,12 @@ def login():
         # Query users database to check if someone has that username
         db = get_db()  # Use the database connection from g
 
-        # fetchone fetches the first row of the results
+        # fetchone fetches the first row of the results, aka the user whose username matches
         person = db.execute(
             "SELECT * FROM users WHERE username = ?", (username,)
         ).fetchone()
 
-        # Ensure username only belongs to one user and password is correct
+        # Ensure username belongs to a valid user and password is correct
         if person is None or not check_password_hash(person["password"], password):
             return apology("invalid username and/or password", 400)
 
@@ -167,7 +180,7 @@ def logout():
     # Forget any user_id
     session.clear()
 
-    # Redirect user to login form
+    # Redirect user to about page (index.html)
     return redirect("/")
 
 @app.route("/register", methods=["GET", "POST"])
@@ -230,25 +243,32 @@ def register():
     
 @app.route("/feed", methods=["GET", "POST"])
 def feed():
+    """Generates feed that user sees"""
      # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         userRequest = request.form.get("userRequest")
-        tags_list = request.form.getlist("style")   # Creates a list from the style tags
+
+        # Creates a list from the style tags (the tags that the user selects to describe their inquiry)
+        tags_list = request.form.getlist("style")   
+        
         # Extends list to include size and item, puts "None" if item left blank
         tags_list.extend(filter(None, [request.form.get("size"), request.form.get("item")]))    
         expirationDate = request.form.get("expirationDate")
         curUser = session["user_id"]
         
-        db = get_db()  # Use the database connection from g
+        db = get_db()  
+        # Updates inquiries table with a new inquiry
         db.execute(
             "INSERT INTO inquiries (request, exp_date, user_id) VALUES (?, ?, ?)",
             (userRequest, expirationDate, curUser)
         )
-
+        
+        # Returns the id of the newest inquiry
         inquiry_id = db.execute(
             "SELECT id FROM inquiries ORDER BY id DESC LIMIT 1"
         ).fetchone()[0] 
 
+        # Updates tags table to include the tags of the newest inquiry
         for tag in tags_list:
             db.execute(
                 "INSERT INTO tags (inquiry_id, tag) VALUES (?, ?)",
@@ -256,7 +276,7 @@ def feed():
             )
         db.commit()
         
-        db = get_db()
+        # Returns information of every inquiry that is not expired or accepted
         results = db.execute("""SELECT users.name, users.username, users.college, users.img_path, inquiries.*, 
                              GROUP_CONCAT(tags.tag, ', ') AS tags FROM users 
                              JOIN inquiries ON users.id = inquiries.user_id 
@@ -266,8 +286,6 @@ def feed():
                              GROUP BY inquiries.id 
                              ORDER BY inquiries.time_published DESC;""").fetchall()
         
-        for result in results:
-            print(result['img_path'])
             
         return render_template("feed.html", results=results)
     
@@ -296,7 +314,7 @@ def feed():
             # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
             # Order by helps make it so that the newest requests are shown first
             query = f"""
-                SELECT users.name, users.username, users.college, inquiries.*, 
+                SELECT users.name, users.username, users.college, users.img_path, inquiries.*, 
                 GROUP_CONCAT(tags.tag, ', ') AS tags FROM inquiries 
                 JOIN users ON users.id = inquiries.user_id 
                 JOIN tags ON inquiries.id = tags.inquiry_id 
@@ -316,7 +334,7 @@ def feed():
         else:
             # renders an unfiltered feed when no filters are used
             db = get_db()
-            results = db.execute("""SELECT users.name, users.username, users.college, inquiries.*, 
+            results = db.execute("""SELECT users.name, users.username, users.college, users.img_path, inquiries.*, 
                                  GROUP_CONCAT(tags.tag, ', ') AS tags FROM users 
                                  JOIN inquiries ON users.id = inquiries.user_id 
                                  JOIN tags ON inquiries.id = tags.inquiry_id
@@ -345,9 +363,9 @@ def inquiry(inquiry_id):
             curUser = session["user_id"]
             lending_exp_date = request.form.get("lending_exp_date")
 
+            # Calls on the function to return a path to the item image
+            # Path will be inserted into responses table
             file_path = upload_image("replyPic", "RESPONSES_UPLOAD")
-
-            #file_path = upload_image("replyPic", "RESPONSES_UPLOAD")
             
             db.execute(
                 "INSERT INTO responses (inquiry_id, prosp_Lender_id, reply, img_path, lending_exp_date) VALUES (?, ?, ?, ?, ?)",
@@ -359,6 +377,7 @@ def inquiry(inquiry_id):
                 # LOL i have so many print statements cuz the things kept on breaking
                 # I avoided joining interactions with inquiries, so for now, there is a slight duplication of having user_id be in interactions too
                 lenderId = db.execute("SELECT prosp_Lender_id FROM responses WHERE id = ?", (accepted_id, )).fetchone()[0]
+                # """SELECT responses.prosp_Lender_id, users.img_path FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.id = ?""", (accepted_id, )
                 update = db.execute("INSERT INTO interactions (inquiry_id, status, lender_id, user_id) VALUES (?, ?, ?, ?)", 
                 (inquiry_id, "pending", lenderId, curUser))
 
@@ -416,9 +435,8 @@ def inquiry(inquiry_id):
     else:
         return render_template("inquiry.html", responses=responses, inquiry=inquiry, is_owner=is_owner)
 
-
- 
 @app.route("/profile", methods=["GET", "POST"])
+@login_required
 def profile():
     db = get_db()
     if request.method == "POST":
@@ -499,6 +517,7 @@ def uploaded_file(name):
 
 
 @app.route("/interactions", methods=["GET", "POST"])
+@login_required
 def interactions():
     db = get_db()
     curUser = session["user_id"]
