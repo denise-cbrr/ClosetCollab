@@ -50,7 +50,12 @@
        <div class="inquiry-card fade-element">
            <div class="inquiry-header">
                <div class="inquiry-user">
-                   <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
+                {% if result.img_path %}
+                    <h3>Uploaded Image:</h3>
+                    <img src="{{ url_for('static', filename=result.img_path) }}" alt="Item Image" style="max-width: 200px;">
+                {% else %}
+                    <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
+                {% endif %}
                    <div class="inquiry-user-info">
                        <h3 class="inquiry-username">{{ result.username }}</h3>
                        <p class="inquiry-college">{{ result.college }}</p>
