@@ -314,6 +314,8 @@ def feed():
                 (inquiry_id, tag)
             )
         db.commit()
+
+        return redirect(url_for('feed'))
     else:
         # Implements filter system
         tags = request.args.getlist("styleFilter")
@@ -349,7 +351,7 @@ def feed():
                 AND inquiries.exp_date >= CURRENT_DATE 
                 GROUP BY inquiries.id HAVING COUNT(tags.tag) = ? 
                 ORDER BY inquiries.time_published DESC;"""
-            
+        
             # Put parameters into the above query: tags will be placed into the placeholders and tag_count is used to specify the number of matching 
             results = db.execute(query, tags + [tag_count]).fetchall()
             return render_template("feed.html", results=results)
@@ -367,7 +369,7 @@ def feed():
             GROUP BY inquiries.id 
             ORDER BY inquiries.time_published DESC;""").fetchall()
         
-        return render_template("feed.html", results=results)
+    return render_template("feed.html", results=results)
 
 @app.route("/inquiry/<int:inquiry_id>", methods=["GET", "POST"])
 @login_required

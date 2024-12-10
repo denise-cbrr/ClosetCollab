@@ -109,6 +109,10 @@ html, body {
   height: 50px;
 }
 
+.inquiry-tags {
+  margin-left: 1.5rem; /* Adds horizontal spacing between profile and tags */
+}
+
 .navbar-container .container-fluid {
   padding: 0;
   height: 100%;
@@ -177,7 +181,7 @@ html, body {
 }
 
 .navbar-nav li a {
-  color: #fff !important;
+  color: #200e0e !important;
   text-decoration: none;
   font-size: 1.2em;
   transition: color 0.3s;
@@ -541,7 +545,10 @@ button:active {
 
 .inquiry-tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+  max-width: 350px;
+  justify-content: right;
 }
 
 .tag {
@@ -550,6 +557,7 @@ button:active {
   padding: 5px 10px;
   border-radius: 5px;
   font-size: 0.8em;
+  max-width: 100%;
 }
 
 .inquiry-request {

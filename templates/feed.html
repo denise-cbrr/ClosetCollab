@@ -23,33 +23,28 @@
                         </div>
                         <div class="mb-3">
                             <select name="style" class="form-select" multiple>
-                                <option disabled selected value="">Select styles</option>
-                                <option value="Formal">Formal</option>
-                                <option value="Casual">Casual</option>
-                                <option value="Streetwear">Streetwear</option>
-                                <option value="Athleisure">Athleisure</option>
+                                {% set styles = ['Comfortable', 'Formal', 'Casual', 'Streetwear', 'Athleisure', 'Grunge', 'Black-Tie', 'Cocktail', 'Y2K', 'Performance-Related', 'Outdoors', 'Cottagecore', 'Collegiate', 'Emo'] %}
+                                {% for style in styles %}
+                                    <option value="{{ style }}">{{ style }}</option>
+                                {% endfor %}
                             </select>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3"> 
                             <select name="size" class="form-select" required>
                                 <option disabled selected value="">Size</option>
-                                <option value="XS">XS</option>
-                                <option value="S">S</option>
-                                <option value="M">M</option>
-                                <option value="L">L</option>
-                                <option value="XL">XL</option>
+                                {% set sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL'] %}
+                                {% for size in sizes %}
+                                    <option value="{{ size }}">{{ size }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="mb-3">
                             <select name="item" class="form-select">
                                 <option disabled selected value="">Item type</option>
-                                <option value="Shirt">Shirt</option>
-                                <option value="Jacket">Jacket</option>
-                                <option value="Pants">Pants</option>
-                                <option value="Shoes">Shoes</option>
-                                <option value="Dress">Dress</option>
-                                <option value="Hat">Hat</option>
-                                <option value="Accessory">Accessory</option>
+                                {% set types = ['Shirt', 'Jacket', 'Pants', 'Shoes', 'Dress', 'Hat', 'Skirt', 'Accessory', 'Sweater'] %}
+                                {% for type in types %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="mb-3">
@@ -68,34 +63,27 @@
                <label for="styleFilter">Style:</label>
                <select name="styleFilter" id="styleFilter" class="filter-select">
                    <option disabled selected value="">All</option>
-                   <option value="Formal">Formal</option>
-                   <option value="Casual">Casual</option>
-                   <option value="Streetwear">Streetwear</option>
-                   <option value="Athleisure">Athleisure</option>
+                    {% for style in styles %}
+                        <option value="{{ style }}">{{ style }}</option>
+                    {% endfor %}
                </select>
            </div>
            <div class="filter-group">
                <label for="sizeFilter">Size:</label>
                <select name="sizeFilter" id="sizeFilter" class="filter-select">
                    <option disabled selected value="">All</option>
-                   <option value="XS">XS</option>
-                   <option value="S">S</option>
-                   <option value="M">M</option>
-                   <option value="L">L</option>
-                   <option value="XL">XL</option>
+                    {% for size in sizes %}
+                        <option value="{{ size }}">{{ size }}</option>
+                    {% endfor %}
                </select>
            </div>
            <div class="filter-group">
             <label for="typeFilter">Type:</label>
             <select name="typeFilter" id="typeFilter" class="filter-select">
                 <option disabled selected value="">All</option>
-                <option value="Shirt">Shirt</option>
-                <option value="Jacket">Jacket</option>
-                <option value="Pants">Pants</option>
-                <option value="Shoes">Shoes</option>
-                <option value="Dress">Dress</option>
-                <option value="Hat">Hat</option>
-                <option value="Accessory">Accessory</option>
+                {% for type in types %}
+                    <option value="{{ type }}">{{ type }}</option>
+                {% endfor %}
             </select>
         </div>
            <button type="submit" class="btn-primary">Apply Filters</button>

@@ -58,10 +58,12 @@
     <main class="content">
         {% block main %}
         <h2 class="h2">Welcome to Closet Collab!</h2>
-        <p>Have you ever needed a "stitch to wear?" Wanted a fun new dress to wear to formal but couldn't get it last minute? Join your fellow Yalies on the hottest new outfit sharing website; Closet Collab! Post inquiries in those last minute times of need to borrow from other Yalies, and respond when you are willing to provide! Join Closet Collab below.</p>
+        <p>Have you ever needed a "stitch to wear?" Wanted a fun new dress to wear to formal but couldn't get it last minute? Join your fellow Yalies on the hottest new outfit sharing website: Closet Collab! Post inquiries in those last minute times of need to borrow from other Yalies, and respond when you are willing to provide! Explore your personal style, and fuel the creativity of others. We can't wait to have you.</p>
         <div class="form-container text-center">
-            <a href="{{ url_for('register') }}" class="btn">Join Now</a>
-            <a href="{{ url_for('login') }}" class="btn">Log In</a>
+            {% if not session.user_id %}
+                <a href="{{ url_for('register') }}" class="btn">Join Now</a>
+                <a href="{{ url_for('login') }}" class="btn">Log In</a>
+            {% endif %}
         </div>
         {% endblock %}
     </main>
