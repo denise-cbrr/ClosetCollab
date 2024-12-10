@@ -26,14 +26,21 @@ from helpers import apology, login_required
     #exp_date: YYYY-MM-DD
 
 #tags table
-    #inquiry_id
-    #tags: anything from style to size
+    #inquiry_id: references inquiries table (id)
+    #tag: text (anything from style, size, type)
 
-#interactions
-    #user_id
-    #inquiry_id
-    #status: text (delivered, received, etc.)
-    #lender_id: user_id of lender
+#interactions table
+    #user_id: person who is doing the borrowing, also references users (id)
+    #lender_id: person who is doing the lending, also references users (id)
+    #inquiry_id: references inquiries (id)
+    #status: text (pending, in progress, completed, lost, late)
+
+#responses table 
+    #id: identifies the responses
+    #inquiry_id: references inquiries(id)
+    #prosp_lender_id: references users(id), and is an identifier of who user could be borrowing from
+    #time_published: to sort by time/date
+    #reply: text
 
 # Configure application
 app = Flask(__name__)
@@ -58,7 +65,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 Session
 
-# Consulted: https://flask.palletsprojects.com/en/stable/tutorial/database/, for information on how to handle sqlite3 and flask outside of CS50
+# Source: https://flask.palletsprojects.com/en/stable/tutorial/database/, consulted for information on how to handle sqlite3 and flask outside of CS50
 # Retrieves database's connection (to perform SQL query searches)
 def get_db():
     """Opens a new database connection if one doesn't exist"""
@@ -69,7 +76,7 @@ def get_db():
         g.db.row_factory = sqlite3.Row  
     return g.db
 
-# Consulted: https://flask.palletsprojects.com/en/stable/tutorial/database/, for information on how to handle sqlite3 and flask outside of CS50
+# Source: https://flask.palletsprojects.com/en/stable/tutorial/database/, consulted for information on how to handle sqlite3 and flask outside of CS50
 # Function to close the database connection
 # Automatically called by Flask when a request is completed
 @app.teardown_appcontext
@@ -80,6 +87,26 @@ def close_db(exception):
     # Checks whether a database connection was found; if so, closes it
     if db is not None:
         db.close()
+
+def validate_date_field(field_var, field_name):
+    """Validate that the date field is not empty, has a valid format, and exists in the future."""
+    if not field_var:
+        return apology(f"{field_name} is required.", 400)
+    
+    try:
+        # Try parsing the date
+        field_var_date = datetime.strptime(field_var, "%Y-%m-%d")
+        
+        # Ensure the date is in the future
+        if field_var_date <= datetime.now():
+            return apology(f"{field_name} must be in the future", 400)
+        
+    except ValueError:
+        # Signal to the user that this is an invalid date type
+        return apology(f"Invalid {field_name} format. Use YYYY-MM-DD.", 400)
+
+    return None  # If everything is fine, return None
+
 
 # Retrieves all information (available in the users table) about the user whose id is the parameter
 def get_lender_info(user_id):
@@ -247,18 +274,29 @@ def feed():
     """Generates feed that user sees"""
      # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+        # Processes form when user posts a new inquiry to feed
         userRequest = request.form.get("userRequest")
 
         # Creates a list from the style tags (the tags that the user selects to describe their inquiry)
         tags_list = request.form.getlist("style")   
         
         # Extends list to include size and item, puts "None" if item left blank
-        tags_list.extend(filter(None, [request.form.get("size"), request.form.get("item")]))    
+        tags_list.extend(filter(None, [request.form.get("size"), request.form.get("item")])) 
+
         expirationDate = request.form.get("expirationDate")
         curUser = session["user_id"]
         
+        # Validating the backend, ensure what's required is reinforced
+        if not userRequest:
+            return apology("Request description is required.", 400)
+        validation_error = validate_date_field(expirationDate, "Expiration Date")
+        if validation_error:
+            return validation_error
+        if not request.form.get("size"):
+            return apology("Please specify a size", 400)
+
         db = get_db()  
-        # Updates inquiries table with a new inquiry
+        # Updates inquiries table with the new inquiry
         db.execute(
             "INSERT INTO inquiries (request, exp_date, user_id) VALUES (?, ?, ?)",
             (userRequest, expirationDate, curUser)
@@ -269,28 +307,15 @@ def feed():
             "SELECT id FROM inquiries ORDER BY id DESC LIMIT 1"
         ).fetchone()[0] 
 
-        # Updates tags table to include the tags of the newest inquiry
+        # Updates tags table to include the tags of the newest inquiry with respect to its id
         for tag in tags_list:
             db.execute(
                 "INSERT INTO tags (inquiry_id, tag) VALUES (?, ?)",
                 (inquiry_id, tag)
             )
         db.commit()
-        
-        # Returns information of every inquiry that is not expired or accepted
-        results = db.execute("""SELECT users.name, users.username, users.college, users.img_path, inquiries.*, 
-                             GROUP_CONCAT(tags.tag, ', ') AS tags FROM users 
-                             JOIN inquiries ON users.id = inquiries.user_id 
-                             JOIN tags ON inquiries.id = tags.inquiry_id
-                             WHERE inquiries.exp_date >= CURRENT_DATE 
-                             AND inquiries.accepted = 'no'
-                             GROUP BY inquiries.id 
-                             ORDER BY inquiries.time_published DESC;""").fetchall()
-        
-            
-        return render_template("feed.html", results=results)
-    
     else:
+        # Implements filter system
         tags = request.args.getlist("styleFilter")
         size_filter = request.args.get("sizeFilter")
         type_filter = request.args.get("typeFilter")
@@ -307,13 +332,13 @@ def feed():
                 tags.append(type_filter)
                 
             tag_count = len(tags)
+
+            # Creates placeholders, e.g. ('?', '?', '?') where the number of '?' correspond to the number of tags
             placeholders = ', '.join(['?'] * len(tags))
-            
-            # placeholders will dynamically create the right amount of ? for each filter
-            # IN () will return the inquiry_id of any inquiry with at least one of those tags
-            # GROUP BY will group the inquiries by inqury_id so we deal with one row only
-            # HAVING COUNT(DISTINCT t.tags) = ? will ensure that it only returns inquries with ALL tags
-            # Order by helps make it so that the newest requests are shown first
+        
+            db = get_db()
+
+            # Raw SQL query that will return information about every inquiry (and the user that posted them) given it includes the tags that were selected
             query = f"""
                 SELECT users.name, users.username, users.college, users.img_path, inquiries.*, 
                 GROUP_CONCAT(tags.tag, ', ') AS tags FROM inquiries 
@@ -322,210 +347,166 @@ def feed():
                 WHERE tags.tag IN ({placeholders})
                 AND inquiries.accepted = 'no'
                 AND inquiries.exp_date >= CURRENT_DATE 
-                GROUP BY inquiries.id HAVING COUNT(DISTINCT tags.tag) = ? 
+                GROUP BY inquiries.id HAVING COUNT(tags.tag) = ? 
                 ORDER BY inquiries.time_published DESC;"""
-           
-            db = get_db()
+            
+            # Put parameters into the above query: tags will be placed into the placeholders and tag_count is used to specify the number of matching 
             results = db.execute(query, tags + [tag_count]).fetchall()
-        
-            # db.execute(f"SELECT i.*FROM inquiries i JOIN tags t ON i.id = t.inquiry_id WHERE t.tags IN ({tag_list}) 
-            # GROUP BY i.id HAVING COUNT(DISTINCT t.tags) = {tag_count};")
-            # Used code is better because it parametrizes and protects from SQL injection attacks
-           
-        else:
-            # renders an unfiltered feed when no filters are used
-            db = get_db()
-            results = db.execute("""SELECT users.name, users.username, users.college, users.img_path, inquiries.*, 
-                                 GROUP_CONCAT(tags.tag, ', ') AS tags FROM users 
-                                 JOIN inquiries ON users.id = inquiries.user_id 
-                                 JOIN tags ON inquiries.id = tags.inquiry_id
-                                 WHERE inquiries.exp_date >= CURRENT_DATE 
-                                 AND inquiries.accepted = 'no'
-                                 GROUP BY inquiries.id 
-                                 ORDER BY inquiries.time_published DESC;""").fetchall()
+            return render_template("feed.html", results=results)
+        # Renders an unfiltered feed when no filters are used
+        db = get_db()
+
+        # Returns information about all inquiries (including all their tags, user details) where the inquiries have not expired and have not been accepted yet
+        results = db.execute("""
+            SELECT users.name, users.username, users.college, users.img_path, inquiries.*, 
+            GROUP_CONCAT(tags.tag, ', ') AS tags FROM users 
+            JOIN inquiries ON users.id = inquiries.user_id 
+            JOIN tags ON inquiries.id = tags.inquiry_id
+            WHERE inquiries.exp_date >= CURRENT_DATE 
+            AND inquiries.accepted = 'no'
+            GROUP BY inquiries.id 
+            ORDER BY inquiries.time_published DESC;""").fetchall()
         
         return render_template("feed.html", results=results)
 
 @app.route("/inquiry/<int:inquiry_id>", methods=["GET", "POST"])
 def inquiry(inquiry_id):
+    """Generates a page for each inquiry to see its individual responses/selections"""
+
     db = get_db()
+    # Determine which inquiry user is viewing
     inquiry = db.execute("""
        SELECT * FROM inquiries
         WHERE id = ?
     """, (inquiry_id,)).fetchone()
 
-    #Checks if user is viewing their own post 
+    # Checks if user is viewing their own post 
     curUser = session["user_id"]
     is_owner = inquiry["user_id"] == curUser
     
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+
+        # When a response form is submitted
         if "replyResponse" in request.form:
             reply = request.form.get("replyResponse")
             curUser = session["user_id"]
             lending_exp_date = request.form.get("lending_exp_date")
+            
+            # Validate backend
+            if not reply:
+                return apology("Response description is required.", 400)
+            
+            # Ensure that lending_exp_date is in the future
+            validation_error = validate_date_field(lending_exp_date, "Return Date")
+            if validation_error:
+                return validation_error
 
             # Calls on the function to return a path to the item image
             # Path will be inserted into responses table
             file_path = upload_image("replyPic", "RESPONSES_UPLOAD")
             
+            # Inserts new response into response table
             db.execute(
                 "INSERT INTO responses (inquiry_id, prosp_Lender_id, reply, img_path, lending_exp_date) VALUES (?, ?, ?, ?, ?)",
                 (inquiry_id, curUser, reply, file_path, lending_exp_date)
             )
+
+        # User reached route via GET (e.g. clicking on the confirm button)
         else:
+            # Check for the existence of an accepted_id, a response to the inquiry the user posted that they've now also accepted
             accepted_id = request.form.get("accepted_id")
             if accepted_id:
-                # LOL i have so many print statements cuz the things kept on breaking
-                # I avoided joining interactions with inquiries, so for now, there is a slight duplication of having user_id be in interactions too
+                # Identify the lender via lenderId, or who posted that response
                 lenderId = db.execute("SELECT prosp_Lender_id FROM responses WHERE id = ?", (accepted_id, )).fetchone()[0]
-                # """SELECT responses.prosp_Lender_id, users.img_path FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.id = ?""", (accepted_id, )
+
+                # Add this relationship to the interactions table 
                 update = db.execute("INSERT INTO interactions (inquiry_id, status, lender_id, user_id) VALUES (?, ?, ?, ?)", 
                 (inquiry_id, "pending", lenderId, curUser))
-
+                
+                # Identify lender from their lenderId for future contact reference
                 lender_info = get_lender_info(lenderId)
 
-                # Get all other responses in that inquiries that will need to be deleted from the database
-                to_be_deleted = db.execute("SELECT * FROM responses WHERE inquiry_id = ? AND id != ?", (inquiry_id, accepted_id)).fetchall()
-                if to_be_deleted:
-                    for row in to_be_deleted:
-                        db.execute("DELETE FROM responses WHERE id = ?", (row['id'], ))
+                # Delete all other responses to this inquiry that are not the one that had been accepted
+                db.execute("DELETE FROM responses WHERE inquiry_id = ? AND id != ?", (inquiry_id, accepted_id))
 
+                # Update in inquiries that this specific inquiry has been accepted
                 db.execute("UPDATE inquiries SET accepted = 'yes' WHERE id = ?", (inquiry_id, ))
-                print(f"Updating inquiry with id {inquiry_id} to accepted = 'yes'")
                 db.commit()
 
                 return render_template("accepted_inquiry.html", lender_info=lender_info)
             else:
-                # Deletes the responses that the user declines
+                # Deletes the responses that the user had declined for this inquiry
                 declined_ids = request.form.get("declined_ids").split(',')
             
                 for id in declined_ids:
                     db.execute("DELETE FROM responses WHERE id = ?", (id, ))
     
+    # Delete any responses whose return dates precede the current date
     db.execute("DELETE FROM responses WHERE lending_exp_date < CURRENT_DATE")
 
+    # Delete any inquiries that the user hasn't accepted any responses in, and the expiration date has passed (affects other tables like tags and responses as well)
     db.execute("DELETE FROM inquiries WHERE accepted ='no' AND exp_date < CURRENT_DATE")
     db.execute("DELETE FROM tags WHERE inquiry_id NOT IN (SELECT id FROM inquiries)")
     db.execute("DELETE FROM responses WHERE inquiry_id NOT IN (SELECT id FROM inquiries)")
 
+    # Retrieve information regarding the responses to the id of the inquiry the user is currently interacting with
     responses = db.execute(
         "SELECT responses.*, users.username AS lender_username FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.inquiry_id = ? ORDER BY responses.time_published DESC", (inquiry_id, )).fetchall();
-        #"SELECT * FROM responses WHERE inquiry_id = ? ORDER BY time_published DESC", (inquiry_id,)
-        #).fetchall()
-        
-        #another to-do = check all the expiration dates 
-        # if user clicks an accept, the rest automatically deletes and needs to be removed from SQL query
-        # if user clicks accept, add to interactions table and 
-        # change the status in the original feed table
-        # return user to a new html page "Please refer to interactions table, here's other user's email"
-        # for declines, delete all SQL queries FROM replies (they are an array of ids)
-    
-    #pics = [row['img_path'] for row in db.execute("SELECT img_path FROM responses WHERE inquiry_id = ?", (inquiry_id,)).fetchall()]
-    #print(pics)
-    for response in responses:
-        print(response['img_path'])
-    
-    
-        
+
+    # Identify whether or not the inquiry has been accepted
     inquiry_accepted = db.execute("SELECT accepted FROM inquiries WHERE id = ?", (inquiry_id, )).fetchone()[0]
     db.commit()
+
+    # Inquiry has been accepted: render accepted_inquiry.html and display lender's contact info
     if inquiry_accepted == 'yes':
         lenderId = db.execute("SELECT lender_id FROM interactions WHERE inquiry_id = ?", (inquiry_id, )).fetchone()[0]
         lender_info = get_lender_info(lenderId)
         return render_template("accepted_inquiry.html", lender_info=lender_info)
+    # Display regular responses
     else:
         return render_template("inquiry.html", responses=responses, inquiry=inquiry, is_owner=is_owner)
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
-    
+    """Display user's profile"""
     curUser = session["user_id"]
     db = get_db()
+
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-        #Deals with photos
-        file_path = upload_image("profilePic", "PROFILE_UPLOAD")            
+        # Deals with photos
+        file_path = upload_image("profilePic", "PROFILE_UPLOAD")        
+        # Updates user profile picture    
         db.execute("UPDATE users SET img_path = ? WHERE id = ?", (file_path, session["user_id"]))
-        #return redirect(url_for('download_file', name=filename))
-            
-    db = get_db()
-    curUser = session["user_id"]
+
+    # Retrieves the information for the inquiries posted by the current user, newest first
     inquiries = db.execute(
         "SELECT * FROM inquiries WHERE user_id = ? ORDER BY exp_date DESC", (curUser, )).fetchall();
     
+    # Retrieves information about the current user
     user = db.execute(
         "SELECT name, username, college FROM users WHERE id = ?", (curUser, )).fetchone();
     
+    # Retrieves the picture the user has set as their profile picture
     pic = db.execute("SELECT img_path FROM users WHERE id = ?", (curUser, )).fetchone();
-    #cursor.execute("SELECT img_path, file_type FROM users WHERE id = ?", (curUser, ))
     
     if pic:
         img_path = pic[0]  # Access the first column (img_path)
-    
-    print(img_path)
-    
-    #row = cursor.fetchone()
-    #if row:
-        #imgdata = row[0]
-        #file_extension = row[1]
-    
-    #if imgdata:
-        #with open(f'retrieved_image{file_extension}', 'wb') as f:
-            #picture_path = f.write(imgdata)
-    #else:
-        #picture_path = None
-    
-    #print(f"path: {picture_path}")
+
     db.commit()
     return render_template("profile.html", inquiries=inquiries, user=user, picture=img_path)
-    #picture = url_for('return_image', table="users", id=curUser) 
-    #print(f"picture url: {picture}")
-            
-    #return render_template("profile.html", inquiries=inquiries, user=user, picture=picture)
-
-
-
-@app.route('/profile/<name>')
-def download_file(name):
-    return send_from_directory(app.config["PROFILE_UPLOAD"], name)
-
-@app.route('/responses/<name>')
-def uploaded_file(name):
-    return send_from_directory('responses', name)
-
-#@app.route('/return_image/<string:table>/<int:id>')
-#def return_image(table, id):
-    #valid_tables = {"users", "responses"}
-    
-    #if table not in valid_tables:
-        #return apology ("can't find table", 400)
-     
-    #query = f"SELECT img_data, file_type FROM {table} WHERE id = ?"
-    
-    #db = get_db()
-    #cursor = db.cursor()
-    #cursor.execute(query, (id,)).fetchone()
-    
-    #row = cursor.fetchone()
-    #if not row:
-       #return apology("no image found")
-    
-    #imgbin = row[0]
-    #file_extension = row[1]
-    
-    #mime_type = f"image/{file_extension.strip('.')}"
-        
-    #return Response(imgbin, mimetype=mime_type)
-    
-
 
 @app.route("/interactions", methods=["GET", "POST"])
 @login_required
 def interactions():
+    """Displays user's lending and borrowing interactions"""
     db = get_db()
     curUser = session["user_id"]
     
-     # person didn't receive it in time: aka LATE
+    # Marks status as late for interactions where the status is still pending (aka lender hasn't successfully delivered their clothing item
+    # to the user) by the time the inquiry's expiration date has passed
     db.execute(
         """
         UPDATE interactions
@@ -539,6 +520,8 @@ def interactions():
         """
     )
 
+    # Marks status as lost for interactions where the status is still in progress (aka user hasn't successfully returned their clothing item
+    # to the lender) by the time that item's lending return date has passed
     db.execute(
         """
         UPDATE interactions
@@ -552,28 +535,28 @@ def interactions():
         """
     )
 
-    # if lender doesn't get their item back 
-    # for interaction in lender_interactions:
-        
-    
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-        # go through all the interactions, and if status = pending but the expiration date has past, then status should be late?
-        # Check if accepted button was pressed
+        # user has received the clothing they are borrowing 
         if "receiveButton" in request.form:
             inquiry_id = request.form["inquiry_id"]
             db.execute("UPDATE interactions SET status = 'in progress' WHERE inquiry_id = ?", (inquiry_id, ))
-                
+        
+        # user has returned the clothing they are borrowing 
         if "returnButton" in request.form:
             inquiry_id = request.form["inquiry_id"]
             db.execute("UPDATE interactions SET status = 'completed' WHERE inquiry_id = ?", (inquiry_id, ))
 
+        # if user selects delete, this interaction gets deleted, and so does the inquiry_id of it get removed from inquiries, 
+        # responses, and tags as well
         if "inquiry_id_delete" in request.form:
             inquiry_id_delete = request.form.get("inquiry_id_delete")
             db.execute("DELETE FROM inquiries WHERE id = ?", (inquiry_id_delete, ))
             db.execute("DELETE FROM tags WHERE inquiry_id = ?", (inquiry_id_delete, ))
             db.execute("DELETE FROM responses WHERE inquiry_id = ?", (inquiry_id_delete, ))
             db.execute("DELETE FROM interactions WHERE inquiry_id = ?", (inquiry_id_delete, ))
-                
+
+    # Retrieve all interactions where the current user is borrowing an item from someone else            
     borrow_interactions = db.execute(
     """
         SELECT
@@ -583,8 +566,8 @@ def interactions():
             JOIN responses ON inquiries.id = responses.inquiry_id
             WHERE interactions.user_id = ?
     """,(curUser, )).fetchall()
-    # SELECT inquiries.request, interactions.*, responses.lending_exp_date FROM inquiries JOIN interactions ON inquiries.id = interactions.inquiry_id JOIN responses ON inquiries.id = responses.inquiry_id WHERE interactions.user_id = ?
     
+    # Retrieve all interactions where the current user is lending an item to someone else    
     lender_interactions = db.execute(
         """SELECT
             inquiries.request AS request, responses.img_path AS img_path, interactions.*, responses.lending_exp_date AS lending_exp_date
@@ -594,16 +577,6 @@ def interactions():
             WHERE interactions.lender_id = ?
     """,(curUser, )).fetchall()
 
-    for interaction in borrow_interactions:
-        print(interaction['img_path'])
-    
-    # this would work for the borrowing side (maybe we can return less information compared to feed?)
-    # myInquiries = db.execute("SELECT users.name, users.username, users.college, inquiries.*, GROUP_CONCAT(tags.tag) AS tags FROM users JOIN inquiries ON users.id = inquiries.user_id JOIN tags ON inquiries.id = tags.inquiry_id WHERE users.id = ? GROUP BY inquiries.id;", session["user_id"])
-    
-    # might need to work on the commenting/accepting request feature first. 
-    # need stuff to fill interactions table to track the lending and the borrowing.
-    #for inquiry in myInquiries:
-    
     db.commit()
     return render_template("interactions.html", borrow_interactions=borrow_interactions, lender_interactions=lender_interactions)
 
