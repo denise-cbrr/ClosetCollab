@@ -1,159 +1,179 @@
 {% extends "layout.html" %}
-{% block title %}
-    Inquiries
-{% endblock %}
+{% block title %}Inquiry{% endblock %}
 
 {% block main %}
-    <h3>{{inquiry.request}}</h3>
-    <h2>Date your inquiry will expire by: {{inquiry.exp_date}}</h2>
+<div class="page-container">
+    <div class="inquiry-details fade-element">
+        <h2 class="h2">{{inquiry.request}}</h2>
+        <p>Expires: {{inquiry.exp_date}}</p>
+    </div>
+
     {% if not is_owner %}
-    <!-- Button trigger modal (just something random from bootstrap) -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        Have an item to lend out?
-    </button>
-    
-    <!-- Modal -->
-    <!-- Creates form for users to add responses to -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Add an reply!</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="response-container fade-element">
+        <form action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" enctype="multipart/form-data" class="response-form">
+            <div class="mb-3">
+                <textarea class="form-control" name="replyResponse" placeholder="Describe your item" required></textarea>
             </div>
-            <div class="modal-body">
-                <form action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <input class="form-control mx-auto w-auto" name="replyResponse" placeholder="Describe your item" type="text" required>
-                        <p>Upload a picture!</p>
-                            <input name="replyPic" placeholder="Image: " type="file" accept="image/*" required>
-                        <p>"Date you want your item back!"</p>
-                        <input class="form-control mx-auto w-auto" name="lending_exp_date" type="date" required>
-                    </div>
-                    <button class="btn btn-primary" type="submit">Submit here!</button>
-                </form>
+            <div class="mb-3">
+                <label class="form-label">Upload a picture</label>
+                <input class="form-control" name="replyPic" type="file" accept="image/*" required>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <div class="mb-3">
+                <label class="form-label">Return by date</label>
+                <input class="form-control" name="lending_exp_date" type="date" required>
             </div>
-        </div>
-        </div>
+            <button class="btn-primary" type="submit">Submit Response</button>
+        </form>
     </div>
     {% endif %}
+
     {% if responses %}
+    <div class="responses-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 0 auto;">
         {% for response in responses %}
-            <!-- Im not sure why the code doesn't let me store it without the "reply-"-->
-            <div class = "reply_card" id="reply-{{ response.id }}">
-                <p>{{response.lender_username}}: {{response.reply}}</p>
-                <p>lending deadline: {{response.lending_exp_date}}</p>
-                {% if response.img_path %}
-                    <h3>Uploaded Image:</h3>
-                    <p>{{response.img_path}}</p>
-                <img src="{{ url_for('static', filename=response.img_path) }}" alt="User Image" style="max-width: 200px;">
-                {% else %}
-                    <p>No image uploaded yet.</p>
-                {% endif %}
-                <!-- Only shows buttons (including to confirm) if the current user is viewing their own inquiries-->
-                {% if is_owner %}
-                    <button class="accept-btn" data-id="{{ response.id }}">Accept</button>
-                    <button class="decline-btn" data-id="{{ response.id }}">Decline</button>
-                {% endif %}
+        <div class="response-card fade-element" style="flex: 0 0 calc(45% - 10px); min-width: 300px;" id="reply-{{ response.id }}">
+            <div class="response-header">
+                <h3>{{ response.lender_username }}</h3>
+                <p class="response-date">Return by: {{ response.lending_exp_date }}</p>
             </div>
-        {% endfor %}
-        {% if is_owner %}
-            <form id="confirm-selection-form" action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post">
-                <button class="confirm-accept-btn">Confirm your selection! (Please note, you will not be able to change this)</button>
-                <input type="hidden" id="accepted-id-input" name="accepted_id" value="">
-                <input type="hidden" id="declined-ids-input" name="declined_ids" value="">
-            </form>
-        {% endif %}
-    {% else %}
-            {% if is_owner %}
-                <p>Waiting... no responses yet... the wait will be worthwhile... </p>
+            <p class="response-text">{{ response.reply }}</p>
+            {% if response.img_path %}
+            <div class="response-image">
+                <img src="{{ url_for('static', filename=response.img_path) }}" alt="Item Image">
+            </div>
             {% endif %}
+            {% if is_owner %}
+            <div class="response-actions">
+                <button class="btn-primary accept-btn" data-id="{{ response.id }}">Accept</button>
+                <button class="btn-primary decline-btn" data-id="{{ response.id }}">Decline</button>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if is_owner %}
+    <form id="confirm-selection-form" action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" class="confirmation-form">
+        <button class="btn-primary confirm-accept-btn">Confirm Selection</button>
+        <input type="hidden" id="accepted-id-input" name="accepted_id">
+        <input type="hidden" id="declined-ids-input" name="declined_ids">
+    </form>
     {% endif %}
-    <!-- we could create a pop up that asks the user to verify that they understand, and then there's an option for users to say "don't show up again" but that can be a less important thing-->
+    {% else %}
+        {% if is_owner %}
+        <p class="no-responses">No responses yet</p>
+        {% endif %}
+    {% endif %}
+</div>
 
-    <script>
-        // Refreshes on every reload
-         document.addEventListener("DOMContentLoaded", () => {
-            // ID of the reply that is currently accepted (set null originally when site first loads)
-            let acceptedReplyId = null; 
+<style>
+.response-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
 
-            // Will store all the responses we'll need to delete in the sql (aka the user doesn't want them)
-            let to_be_deleted = new Set();
+.response-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
 
-            document.querySelectorAll(".reply_card").forEach(card => {
-                let id_for_sql = card.id.replace('reply-', '');
-                const acceptBtn = card.querySelector(".accept-btn");
-                const declineBtn = card.querySelector(".decline-btn");
+.response-image img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 10px 0;
+}
 
-                // Updates what's the current selected reply id when a "accept" button is clicked
-                acceptBtn.addEventListener("click", () => {
-                    // Checks if this card had been declined, and if it has, remove it from that list because the user now intends to accept it
-                    to_be_deleted.delete(id_for_sql);
+.response-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
 
-                    // If there was something selected before it:
-                    if (acceptedReplyId) {
-                        // identify what was previously selected and replaces it
-                        const previousCard = document.querySelector(`#${acceptedReplyId}`);
-                        if (previousCard) {
-                            const previousAcceptBtn = previousCard.querySelector(".accept-btn");
-                            const previousDeclineBtn = previousCard.querySelector(".decline-btn");
+.accepted {
+    background-color: #4CAF50 !important;
+}
 
-                            // previousDeclineBtn.disabled = false;
+.declined {
+    background-color: #f44336 !important;
+}
 
-                            previousAcceptBtn.classList.remove("accepted");
-                            previousDeclineBtn.classList.remove("declined");
-                        }
+.confirmation-form {
+    text-align: center;
+    margin: 20px 0;
+}
+
+@media (max-width: 768px) {
+    .response-card {
+        flex: 0 0 100% !important;
+    }
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    let acceptedReplyId = null;
+    let to_be_deleted = new Set();
+
+    document.querySelectorAll(".response-card").forEach(card => {
+        let id_for_sql = card.id.replace('reply-', '');
+        const acceptBtn = card.querySelector(".accept-btn");
+        const declineBtn = card.querySelector(".decline-btn");
+
+        if (acceptBtn) {
+            acceptBtn.addEventListener("click", () => {
+                to_be_deleted.delete(id_for_sql);
+
+                if (acceptedReplyId) {
+                    const previousCard = document.querySelector(`#reply-${acceptedReplyId}`);
+                    if (previousCard) {
+                        const previousAcceptBtn = previousCard.querySelector(".accept-btn");
+                        const previousDeclineBtn = previousCard.querySelector(".decline-btn");
+                        previousAcceptBtn.classList.remove("accepted");
+                        previousDeclineBtn.classList.remove("declined");
                     }
-                    // Set new accepted reply
-                    acceptedReplyId = id_for_sql;
-
-                    // Adds color (green for selected)
-                    acceptBtn.classList.add("accepted"); 
-
-                    // Removes any red coloring just in case there was one from before
-                    declineBtn.classList.remove("declined"); 
-                })
-
-                declineBtn.addEventListener("click", () => {
-                    const selected_reply = card.id;
-                    
-                    // Adds red color
-                    declineBtn.classList.add("declined"); 
-
-                    // Checks if this response was "accepted" before, and if it has, change it so that it now has declined status
-                    if (acceptedReplyId === card.id){
-                        acceptBtn.classList.remove("accepted");
-                        acceptedReplyId = null; 
-                    }
-
-                    // Add this card's id as one that needs to be deleted
-                    to_be_deleted.add(id_for_sql);
-
-                    //console.log("to_be_deleted:", Array.from(to_be_deleted));
-                })
-            })
-
-            // Turn to_be_deleted into an array, for the backend to process
-            const form = document.getElementById("confirm-selection-form");
-            form.addEventListener("submit", (event) => {
-                const declinedIdsInput = document.getElementById("declined-ids-input");
-                // Turn set into array
-                declinedIdsInput.value = Array.from(to_be_deleted).join(',');
-
-                const acceptedIdInput = document.getElementById("accepted-id-input");
-                acceptedIdInput.value = acceptedReplyId;
-                
-                // Alerts user that they cannot submit unless they either decline something or/and accept something
-                if (!acceptedReplyId && to_be_deleted.size === 0) {
-                    event.preventDefault();
-                    alert("Please select something before confirming!");
                 }
-            })
-         })
-    </script>
+                
+                acceptedReplyId = id_for_sql;
+                acceptBtn.classList.add("accepted");
+                declineBtn.classList.remove("declined");
+            });
+        }
+
+        if (declineBtn) {
+            declineBtn.addEventListener("click", () => {
+                declineBtn.classList.add("declined");
+                
+                if (acceptedReplyId === id_for_sql) {
+                    acceptBtn.classList.remove("accepted");
+                    acceptedReplyId = null;
+                }
+
+                to_be_deleted.add(id_for_sql);
+            });
+        }
+    });
+
+    const form = document.getElementById("confirm-selection-form");
+    if (form) {
+        form.addEventListener("submit", (event) => {
+            const declinedIdsInput = document.getElementById("declined-ids-input");
+            declinedIdsInput.value = Array.from(to_be_deleted).join(',');
+
+            const acceptedIdInput = document.getElementById("accepted-id-input");
+            acceptedIdInput.value = acceptedReplyId;
+            
+            if (!acceptedReplyId && to_be_deleted.size === 0) {
+                event.preventDefault();
+                alert("Please select something before confirming!");
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
-
-

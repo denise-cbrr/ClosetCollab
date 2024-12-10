@@ -56,6 +56,7 @@ os.makedirs(RESPONSES_UPLOAD, exist_ok=True)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+Session
 
 # Consulted: https://flask.palletsprojects.com/en/stable/tutorial/database/, for information on how to handle sqlite3 and flask outside of CS50
 # Retrieves database's connection (to perform SQL query searches)
@@ -438,6 +439,8 @@ def inquiry(inquiry_id):
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
+    
+    curUser = session["user_id"]
     db = get_db()
     if request.method == "POST":
         #Deals with photos

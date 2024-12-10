@@ -1,5 +1,4 @@
 {% extends "layout.html" %}
-
 {% block title %}Feed{% endblock %}
 
 {% block main %}
@@ -30,29 +29,26 @@
                </select>
            </div>
            <div class="filter-group">
-               <label for="typeFilter">Type:</label>
-               <select name="typeFilter" id="typeFilter" class="filter-select">
-                   <option disabled selected value="">All</option>
-                   <option value="Shirt">Shirt</option>
-                   <option value="Jacket">Jacket</option>
-               </select>
-           </div>
+            <label for="typeFilter">Type:</label>
+            <select name="typeFilter" id="typeFilter" class="filter-select">
+                <option disabled selected value="">All</option>
+                <option value="Shirt">Shirt</option>
+                <option value="Jacket">Jacket</option>
+                <option value="Pants">Pants</option>
+                <option value="Shoes">Shoes</option>
+                <option value="Dress">Dress</option>
+                <option value="Hat">Hat</option>
+                <option value="Accessory">Accessory</option>
+            </select>
+        </div>
            <button type="submit" class="btn-primary">Apply Filters</button>
        </form>
    </div>
 
-   <div class="inquiries-container" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;">
+   <div class="inquiries-container">
        {% for result in results %}
-       <div class="inquiry-card" style="flex: 0 0 calc(50% - 10px);">
+       <div class="inquiry-card fade-element">
            <div class="inquiry-header">
-                        <td>
-                            {% if result.img_path %}
-                                <h3>Uploaded Image:</h3>
-                                <img src="{{ url_for('static', filename=result.img_path) }}" alt="User Image" style="max-width: 100px;">
-                            {% else %}
-                                <p>No image uploaded yet.</p>
-                            {% endif %}
-                        </td>
                <div class="inquiry-user">
                    <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
                    <div class="inquiry-user-info">
@@ -70,7 +66,7 @@
            <p class="inquiry-expiration">Expires: {{ result.exp_date }}</p>
            <div class="inquiry-actions">
                <a href="{{ url_for('inquiry', inquiry_id=result.id) }}">
-                   <button class="btn-primary">Reply</button>
+                   <button class="btn-primary">Respond to Request</button>
                </a>
            </div>
        </div>
@@ -78,9 +74,7 @@
    </div>
 
    <div class="new-inquiry-container">
-       <button class="btn-primary" id="addInquiryBtn">
-           Add an Inquiry
-       </button>
+       <button class="btn-primary" id="addInquiryBtn">Add an Inquiry</button>
    </div>
 
    <div class="modal" id="newInquiryModal">
@@ -119,6 +113,11 @@
                                <option disabled selected value="">Item type</option>
                                <option value="Shirt">Shirt</option>
                                <option value="Jacket">Jacket</option>
+                               <option value="Pants">Pants</option>
+                               <option value="Shoes">Shoes</option>
+                               <option value="Dress">Dress</option>
+                               <option value="Hat">Hat</option>
+                               <option value="Acessory">Acessory</option>
                            </select>
                        </div>
                        <div class="mb-3">
@@ -131,45 +130,6 @@
        </div>
    </div>
 </div>
-
-<style>
-.modal {
-   display: none;
-   position: fixed;
-   top: 0;
-   left: 0;
-   width: 100%;
-   height: 100%;
-   background-color: rgba(0,0,0,0.5);
-   z-index: 1000;
-}
-
-.modal.show {
-   display: flex;
-   justify-content: center;
-   align-items: center;
-}
-
-.inquiries-container {
-   width: 100%;
-   max-width: 1200px;
-   margin: 0 auto;
-}
-
-.inquiry-card {
-   background-color: white;
-   border-radius: 10px;
-   padding: 20px;
-   margin-bottom: 20px;
-   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 768px) {
-   .inquiry-card {
-       flex: 0 0 100% !important;
-   }
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
