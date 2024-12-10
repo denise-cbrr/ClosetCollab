@@ -117,7 +117,8 @@ def get_lender_info(user_id):
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-        
+
+# Source: https://flask.palletsprojects.com/en/stable/patterns/fileuploads/, consulted for information on uploading and displaying images        
 # Function for image uploads to return an img_path to be inserted into respective SQL tables
 def upload_image(img_name, folder_name):
     
@@ -143,7 +144,7 @@ def upload_image(img_name, folder_name):
     print(file_path)
     file.save(file_path)    # Saves the file to the path 
     
-    #
+    # Returns the path to the image. Ex: "profile/img1.jpg"
     return os.path.relpath(file_path, STATIC_DIR)
 
 @app.after_request
@@ -272,7 +273,7 @@ def register():
 @app.route("/feed", methods=["GET", "POST"])
 def feed():
     """Generates feed that user sees"""
-     # User reached route via POST (as by submitting a form via POST)
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         # Processes form when user posts a new inquiry to feed
         userRequest = request.form.get("userRequest")
@@ -352,6 +353,8 @@ def feed():
                 GROUP BY inquiries.id HAVING COUNT(tags.tag) = ? 
                 ORDER BY inquiries.time_published DESC;"""
         
+            # Source: https://medium.com/@ajay.monga73/sql-injection-prevention-for-c-developers-parameterized-queries-explained-b5a4cb1b6207
+            # Consulted source about parametrized queries and protecting from SQL injection attacks
             # Put parameters into the above query: tags will be placed into the placeholders and tag_count is used to specify the number of matching 
             results = db.execute(query, tags + [tag_count]).fetchall()
             return render_template("feed.html", results=results)
