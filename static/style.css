@@ -913,7 +913,7 @@ button:active, .btn:active {
   margin: 0;
 }
 
-/* Request box specific styles - using higher specificity to prevent conflicts */
+/* Request box specific styles */
 .interaction-card .request-box {
   width: 48%;
   max-height: 200px;
@@ -930,74 +930,91 @@ button:active, .btn:active {
   margin: 10px 0;
 }
 
+/* Hover effect for request box inside interaction cards */
 .interaction-card .request-box:hover {
   background-color: #f0f0f0;
 }
 
+/* Styles for the truncated request preview text */
 .interaction-card .request-preview {
   margin: 0;
   color: #223030;
 }
 
+/* Hide the full request text until modal is shown */
 .interaction-card .request-full {
   display: none;
 }
 
-/* Enhanced modal styles with higher specificity */
-.request-modal {
+/* Request Modal styling, creates dark overlay */
+.request-view-modal {
   display: none;
   position: fixed;
-  top: 0;
+  z-index: 1001; 
   left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
+  overflow: auto;
 }
 
-.request-modal .modal-content {
-  position: relative;
-  background: white;
+/* Modal content container, white box containing request*/
+.request-view-modal .request-modal-content {
+  background-color: white;
   margin: 15% auto;
   padding: 20px;
-  width: 70%;
-  max-width: 500px;
-  border-radius: 8px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 600px;
+  position: relative;
+  border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-.request-modal .close {
-  position: absolute;
-  right: 15px;
-  top: 10px;
-  font-size: 24px;
-  font-weight: bold;
+/*Close button styling*/
+.request-view-modal .request-modal-close {
   color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
   cursor: pointer;
-  transition: color 0.2s;
+  position: absolute;
+  right: 10px;
+  top: 5px;
 }
 
-.request-modal .close:hover {
+/* Hover effect for close button */
+.request-view-modal .request-modal-close:hover {
   color: #223030;
+  text-decoration: none;
 }
 
-.request-modal #modalText {
+/*Styles for the request text inside modal */
+.request-view-modal .request-modal-text {
   margin-top: 10px;
-  line-height: 1.5;
+  padding: 10px;
+  font-size: 1em;
+  line-height: 1.4;
   color: #223030;
   max-height: 60vh;
   overflow-y: auto;
-  padding-right: 10px;
 }
 
-/* Custom scrollbar for modal text */
-.request-modal #modalText::-webkit-scrollbar {
+/*Custom scrollbar */
+.request-view-modal .request-modal-text::-webkit-scrollbar {
   width: 6px;
 }
 
-.request-modal #modalText::-webkit-scrollbar-thumb {
+/*Scrollbar thumb styling */
+.request-view-modal .request-modal-text::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
+}
+
+/*Overrides conflicting request box styling */
+.request-box {
+  /* Remove or override any conflicting styles */
+  overflow: visible !important;
+  max-height: none !important;
 }

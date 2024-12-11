@@ -11,15 +11,10 @@
     
       <!-- Profile picture container -->
     <div class="profile-picture-container">
-        {% if picture %}
          <!-- Display the user's profile picture if available -->
         <div class="profile-image">
             <img src="{{ url_for('static', filename=picture) }}" alt="User Image" class="profile-image">
         </div>
-        {% else %}
-         <!-- Display a message if no profile picture is available -->
-        <p>No image uploaded yet.</p>
-        {% endif %}
 
          <!-- Button to open the profile picture update modal -->
         <button class="btn-primary" id="updatePicture">

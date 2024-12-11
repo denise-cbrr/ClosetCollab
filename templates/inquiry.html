@@ -63,11 +63,7 @@
                 <div class="inquiry-header">
                     <div class="inquiry-user">
                          <!--Displays user's profile image OR default avatar-->
-                        {% if response.profile %}
                             <img src="{{ url_for('static', filename=response.profile) }}" alt="User Image" class="user-img" style="width: 90px; height: 90px; margin-top: 20px;">
-                        {% else %}
-                            <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
-                        {% endif %}
                         <div class="inquiry-user-info">
                             <h3 class="name">{{ response.name }}</h3>
                             <p class="username">{{ response.username }}</h4>

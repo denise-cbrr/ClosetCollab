@@ -115,11 +115,7 @@
         <div class="inquiry-header">
                <div class="inquiry-user">
                <!--Displays user image or default avatar-->
-                {% if result.img_path %}
-                    <img src="{{ url_for('static', filename=result.img_path) }}" alt="Item Image" class="user-img">
-                {% else %}
-                    <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
-                {% endif %}
+                    <img src="{{ url_for('static', filename=result.img_path) }}" alt="User Image" class="user-img">
                  <!--User details-->
                 <div class="inquiry-user-info">
                        <h3 class="name">{{ result.name }}</h3>

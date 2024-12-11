@@ -4,11 +4,11 @@
 {% endblock %}
 
 {% block main %}
-    <!-- Add modal container at the top level -->
-    <div id="requestModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p id="modalText"></p>
+    <!-- Request Modal -->
+    <div id="requestViewModal" class="request-view-modal">
+        <div class="request-modal-content">
+            <span class="request-modal-close">&times;</span>
+            <div id="requestModalText" class="request-modal-text"></div>
         </div>
     </div>
 
@@ -20,73 +20,77 @@
         <div class="lending-container">
             <h2>Lending</h2>
             <h3 class="page-description">Record of the items you're lending out</h3>
+             <!-- Loop through all lending interactions -->
             {% for interaction in lender_interactions %}
-             <!-- Individual lending interaction card -->
+            <!-- Individual lending interaction card -->
             <div class="interaction-card">
-                 <!-- Header section of the card, displaying user information -->   
+                <!-- Header section of the card -->   
                 <div class="card-header">
-                        {% if interaction.user_img %}
-                          <!-- Display the user's profile image if available -->
-                        <img src="{{ url_for('static', filename=interaction.user_img) }}" alt="User Image" class="user-img" style="float: left; margin-left: 10px;">
-                        {% else %}
-                        <!-- Display a default user image if no profile image is available --> 
-                        <img src="{{ url_for('static', filename='default_user.png') }}" alt="Default User Image" class="user-img" style="float: left; margin-left: 10px;">
-                        {% endif %}
-                        <div class="inquiry-user-info">
-                            <h3 class="name">{{ interaction.name }}</h3>
-                            <p class="username">{{ interaction.username }}</p>
-                            <p class="college">{{ interaction.college }}</p>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        {% if interaction.img_path %}
-                            <img src="{{ url_for('static', filename=interaction.img_path) }}" alt="Item Image" class="item-img">
-                        {% else %}
-                            <p>No image uploaded yet.</p>
-                        {% endif %}
-                        <!-- Updated request box structure -->
-                        <div class="request-box" onclick="showRequest(this)">
-                            <p class="request-preview"><strong>Request:</strong> Request...</p>
-                            <p class="request-full" hidden>{{ interaction.request }}</p>
-                        </div>
-                        <p><strong>Send by:</strong> {{ interaction.exp_date }}</p>
-                        <p><strong>Return by:</strong> {{ interaction.lending_exp_date }}</p>
-                        <!-- Display the interaction status-->
-                        {% if interaction.status == "pending" %}
-                            <p class="pendingStatus"><strong>Status:</strong> {{ interaction.status }}</p>
-                        {% elif interaction.status == "in progress" %}
-                            <p class="progressStatus"><strong>Status:</strong> {{ interaction.status }}</p>
-                        {% elif interaction.status == "completed" %}
-                            <p class="completedStatus"><strong>Status:</strong> {{ interaction.status }}</p>
-                        {% else %}
-                            <p class="lateLost"><strong>Status:</strong> {{ interaction.status }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Footer section unchanged -->
-                    <div class="card-footer">
-                        {% if interaction.status == "pending" %}
-                            <p>Please send your item over by the expiration date!</p>
-                        {% elif interaction.status == "in progress" %}
-                            <form action="/interactions" method="POST">
-                                <input type="hidden" name="inquiry_id" value="{{ interaction.inquiry_id }}">
-                                <button type="submit" name="returnButton" class="btn-primary">Returned Item?</button>
-                            </form>
-                        {% elif interaction.status == "lost" %}
-                            <form action="/interactions" method="post">
-                                <button class="delete-button">Delete</button>
-                                <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value="{{ interaction.inquiry_id }}">
-                            </form>
-                        {% elif interaction.status == "late" %}
-                            <p>Your transaction is late!</p>
-                        {% elif interaction.status == "completed" %}
-                            <form action="/interactions" method="post">
-                                <button class="delete-button">Delete</button>
-                                <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value="{{ interaction.inquiry_id }}">
-                            </form>
-                        {% endif %}
+                    <img src="{{ url_for('static', filename=interaction.user_img) }}" alt="User Image" class="user-img" style="float: left; margin-left: 10px;">
+                   <!-- User information display -->
+                    <div class="inquiry-user-info">
+                        <h3 class="name">{{ interaction.name }}</h3>
+                        <p class="username">{{ interaction.username }}</p>
+                        <p class="college">{{ interaction.college }}</p>
                     </div>
                 </div>
+                 <!-- Card body, contains item details and request info -->
+                <div class="card-body">
+                     <!-- Item image -->
+                    {% if interaction.img_path %}
+                        <img src="{{ url_for('static', filename=interaction.img_path) }}" alt="Item Image" class="item-img">
+                    {% else %}
+                        <p>No image uploaded yet.</p>
+                    {% endif %}
+                   <!-- Clickable request preview that opens modal -->
+                    <div class="request-box" onclick="showRequest(this)">
+                        <p class="request-preview"></p>
+                         <!-- Hidden full request text-->
+                        <p class="request-full" hidden>{{ interaction.request }}</p>
+                    </div>
+                    <p><strong>Send by:</strong> {{ interaction.exp_date }}</p>
+                    <p><strong>Return by:</strong> {{ interaction.lending_exp_date }}</p>
+                    <!-- Status indicator w different colors based on status -->
+                    {% if interaction.status == "pending" %}
+                        <p class="pendingStatus"><strong>Status:</strong> {{ interaction.status }}</p>
+                    {% elif interaction.status == "in progress" %}
+                        <p class="progressStatus"><strong>Status:</strong> {{ interaction.status }}</p>
+                    {% elif interaction.status == "completed" %}
+                        <p class="completedStatus"><strong>Status:</strong> {{ interaction.status }}</p>
+                    {% else %}
+                        <p class="lateLost"><strong>Status:</strong> {{ interaction.status }}</p>
+                    {% endif %}
+                </div>
+                
+                 <!-- Card footer that contains actions buttons based on status -->
+                <div class="card-footer">
+                    {% if interaction.status == "pending" %}
+                     <!-- Reminder for pending items -->
+                    <p>Please send your item over by the expiration date!</p>
+                    {% elif interaction.status == "in progress" %}
+                       <!-- Form to mark item as returned -->
+                    <form action="/interactions" method="POST">
+                            <input type="hidden" name="inquiry_id" value="{{ interaction.inquiry_id }}">
+                            <button type="submit" name="returnButton" class="btn-primary">Returned Item?</button>
+                        </form>
+                    {% elif interaction.status == "lost" %}
+                       <!-- Delete form for lost items --> 
+                    <form action="/interactions" method="post">
+                            <button class="delete-button">Delete</button>
+                            <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value="{{ interaction.inquiry_id }}">
+                        </form>
+                    {% elif interaction.status == "late" %}
+                        <!-- Late notification -->
+                    <p>Your transaction is late!</p>
+                    {% elif interaction.status == "completed" %}
+                        <!-- Delete form for completed transactions-->
+                    <form action="/interactions" method="post">
+                            <button class="delete-button">Delete</button>
+                            <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value="{{ interaction.inquiry_id }}">
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
             {% endfor %}
         </div>
         
@@ -95,87 +99,107 @@
             <h2>Borrowing</h2>
             <h3 class="page-description">Record of the items you're borrowing</h3>
             {% for interaction in borrow_interactions %}
-            <!-- Individual borrowing interaction card -->
             <div class="interaction-card">
+                 <!-- Card header- User info for lender -->
                 <div class="card-header">
-                    {% if interaction.user_img %}
-                            <img src="{{ url_for('static', filename=interaction.user_img) }}" alt="User Image" class="user-img" style="float: left; margin-left: 10px;">
-                    {% else %}
-                            <img src="{{ url_for('static', filename='default_user.png') }}" alt="Default User Image" class="user-img" style="float: left; margin-left: 10px;">
-                    {% endif %}
-                        <div class="inquiry-user-info">
-                            <h3 class="name">{{ interaction.name }}</h3>
-                            <p class="username">{{ interaction.username }}</p>
-                            <p class="college">{{ interaction.college }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="card-body">
-                        {% if interaction.item_img %}
-                            <img src="{{ url_for('static', filename=interaction.item_img) }}" alt="Item Image" class="item-img">
-                        {% else %}
-                            <p>No image uploaded yet.</p>
-                        {% endif %}
-                        <!-- Updated request box structure -->
-                        <div class="request-box" onclick="showRequest(this)">
-                            <p class="request-preview"><strong>Request:</strong> Request...</p>
-                            <p class="request-full" hidden>{{ interaction.request }}</p>
-                        </div>
-                        <p><strong>Need by:</strong> {{ interaction.exp_date }}</p>
-                        <p><strong>Return by:</strong> {{ interaction.lending_exp_date }}</p>
-                        {% if interaction.status == "pending" %}
-                            <p class="pendingStatus"><strong>Status:</strong> {{ interaction.status }}</p>
-                        {% elif interaction.status == "in progress" %}
-                            <p class="progressStatus"><strong>Status:</strong> {{ interaction.status }}</p>
-                        {% elif interaction.status == "completed" %}
-                            <p class="completedStatus"><strong>Status:</strong> {{ interaction.status }}</p>
-                        {% else %}
-                            <p class="lateLost"><strong>Status:</strong> {{ interaction.status }}</p>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="card-footer">
-                        {% if interaction.status == "pending" %}
-                            <form action="/interactions" method="POST">
-                                <input type="hidden" name="inquiry_id" value="{{ interaction.inquiry_id }}">
-                                <button type="submit" name="receiveButton" class="btn-primary">Received Item?</button>
-                            </form>
-                        {% elif interaction.status == "in progress" %}
-                            <p>Please return your item according to your lender!</p>
-                        {% elif interaction.status in ["late", "completed"] %}
-                            <form action="/interactions" method="post">
-                                <button class="delete-button">Delete</button>
-                                <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value="{{ interaction.inquiry_id }}">
-                            </form>
-                        {% endif %}
+                        <img src="{{ url_for('static', filename=interaction.user_img) }}" alt="User Image" class="user-img" style="float: left; margin-left: 10px;">
+                    <div class="inquiry-user-info">
+                        <h3 class="name">{{ interaction.name }}</h3>
+                        <p class="username">{{ interaction.username }}</p>
+                        <p class="college">{{ interaction.college }}</p>
                     </div>
                 </div>
+                
+                 <!-- Card body, item and request details -->
+                <div class="card-body">
+                    {% if interaction.item_img %}
+                        <img src="{{ url_for('static', filename=interaction.item_img) }}" alt="Item Image" class="item-img">
+                    {% else %}
+                        <p>No image uploaded yet.</p>
+                    {% endif %}
+                    <!-- Clickable request preview-->
+                    <div class="request-box" onclick="showRequest(this)">
+                        <p class="request-preview"></p>
+                        <p class="request-full" hidden>{{ interaction.request }}</p>
+                    </div>
+                    <p><strong>Need by:</strong> {{ interaction.exp_date }}</p>
+                    <p><strong>Return by:</strong> {{ interaction.lending_exp_date }}</p>
+                    {% if interaction.status == "pending" %}
+                     <!-- Status indicator-->
+                    <p class="pendingStatus"><strong>Status:</strong> {{ interaction.status }}</p>
+                    {% elif interaction.status == "in progress" %}
+                        <p class="progressStatus"><strong>Status:</strong> {{ interaction.status }}</p>
+                    {% elif interaction.status == "completed" %}
+                        <p class="completedStatus"><strong>Status:</strong> {{ interaction.status }}</p>
+                    {% else %}
+                        <p class="lateLost"><strong>Status:</strong> {{ interaction.status }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Card footer, action buttons for borrower-->
+                <div class="card-footer">
+                    {% if interaction.status == "pending" %}
+                     <!-- Form to confirm item receipt-->  
+                    <form action="/interactions" method="POST">
+                            <input type="hidden" name="inquiry_id" value="{{ interaction.inquiry_id }}">
+                            <button type="submit" name="receiveButton" class="btn-primary">Received Item?</button>
+                        </form>
+                    {% elif interaction.status == "in progress" %}
+                        <p>Please return your item according to your lender!</p>
+                    {% elif interaction.status in ["late", "completed"] %}
+                        <form action="/interactions" method="post">
+                            <button class="delete-button">Delete</button>
+                            <input type="hidden" id="inquiry_id_delete" name="inquiry_id_delete" value="{{ interaction.inquiry_id }}">
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
             {% endfor %}
         </div>
     </div>
 
     <script>
         // Get modal elements
-        const modal = document.getElementById('requestModal');
-        const modalText = document.getElementById('modalText');
-        const span = document.getElementsByClassName('close')[0];
+        const requestViewModal = document.getElementById('requestViewModal');
+        const requestModalText = document.getElementById('requestModalText');
+        const requestModalClose = document.querySelector('.request-modal-close');
+
+        // Function to truncate text
+        function truncateText(text, maxWords) {
+            const words = text.split(' ');
+            if (words.length > maxWords) {
+                return words.slice(0, maxWords).join(' ') + '...';
+            }
+            return text;
+        }
+
+        // Initialize all request previews
+        document.addEventListener('DOMContentLoaded', function() {
+            const requestBoxes = document.querySelectorAll('.request-box');
+            requestBoxes.forEach(box => {
+                const fullRequest = box.querySelector('.request-full').textContent;
+                const preview = box.querySelector('.request-preview');
+                preview.textContent = truncateText(fullRequest, 10); // Show first 10 words
+            });
+        });
 
         // Function to show request in modal
         function showRequest(element) {
             const fullRequest = element.querySelector('.request-full').textContent;
-            modalText.textContent = fullRequest;
-            modal.style.display = 'block';
+            requestModalText.innerHTML = '';
+            requestModalText.innerHTML = `<strong>Request:</strong> ${fullRequest}`;
+            requestViewModal.style.display = 'block';
         }
 
         // Close modal when clicking (x)
-        span.onclick = function() {
-            modal.style.display = 'none';
+        requestModalClose.onclick = function() {
+            requestViewModal.style.display = 'none';
         }
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = 'none';
+            if (event.target == requestViewModal) {
+                requestViewModal.style.display = 'none';
             }
         }
     </script>

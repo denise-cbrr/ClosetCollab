@@ -99,7 +99,7 @@ def validate_date_field(field_var, field_name):
         
         # Ensure the date is in the future
         if field_var_date <= datetime.now():
-            return apology(f"{field_name} must be in the future", 400)
+            return apology(f"{field_name} must be in the future or today", 400)
         
     except ValueError:
         # Signal to the user that this is an invalid date type
@@ -392,6 +392,11 @@ def feed():
             GROUP BY inquiries.id 
             ORDER BY inquiries.time_published DESC;""").fetchall()
         
+    # Delete any inquiries that the user hasn't accepted any responses in, and the expiration date has passed (affects other tables like tags and responses as well)
+        db.execute("DELETE FROM inquiries WHERE accepted ='no' AND exp_date < CURRENT_DATE")
+        db.execute("DELETE FROM tags WHERE inquiry_id NOT IN (SELECT id FROM inquiries)")
+        db.execute("DELETE FROM responses WHERE inquiry_id NOT IN (SELECT id FROM inquiries)")
+
     return render_template("feed.html", results=results)
 
 @app.route("/inquiry/<int:inquiry_id>", methods=["GET", "POST"])
@@ -443,7 +448,7 @@ def inquiry(inquiry_id):
                 (inquiry_id, curUser, reply, file_path, lending_exp_date)
             )
 
-        # User reached route via GET (e.g. clicking on the confirm button)
+        # User reached route by clicking on the confirm button (to confirm what they're deleting or accepting)
         else:
             # Check for the existence of an accepted_id, a response to the inquiry the user posted that they've now also accepted
             accepted_id = request.form.get("accepted_id")
@@ -464,8 +469,6 @@ def inquiry(inquiry_id):
                 # Update in inquiries that this specific inquiry has been accepted
                 db.execute("UPDATE inquiries SET accepted = 'yes' WHERE id = ?", (inquiry_id, ))
                 db.commit()
-
-                return render_template("accepted_inquiry.html", lender_info=lender_info)
             else:
                 # Deletes the responses that the user had declined for this inquiry
                 declined_ids = request.form.get("declined_ids").split(',')
@@ -475,11 +478,6 @@ def inquiry(inquiry_id):
     
     # Delete any responses whose return dates precede the current date
     db.execute("DELETE FROM responses WHERE lending_exp_date < CURRENT_DATE")
-
-    # Delete any inquiries that the user hasn't accepted any responses in, and the expiration date has passed (affects other tables like tags and responses as well)
-    db.execute("DELETE FROM inquiries WHERE accepted ='no' AND exp_date < CURRENT_DATE")
-    db.execute("DELETE FROM tags WHERE inquiry_id NOT IN (SELECT id FROM inquiries)")
-    db.execute("DELETE FROM responses WHERE inquiry_id NOT IN (SELECT id FROM inquiries)")
 
     # Retrieve information regarding the responses to the id of the inquiry the user is currently interacting with
     responses = db.execute(
@@ -547,7 +545,7 @@ def interactions():
         AND inquiry_id IN (
             SELECT id
             FROM inquiries
-            WHERE exp_date < DATE('now', '+5 day')
+            WHERE exp_date < DATE('now')
         )
         """
     )
@@ -562,7 +560,7 @@ def interactions():
         AND inquiry_id IN (
             SELECT id
             FROM responses
-            WHERE lending_exp_date < DATE('now', '+5 day')
+            WHERE lending_exp_date < DATE('now')
         )
         """
     )
@@ -605,9 +603,9 @@ def interactions():
     # Retrieve all interactions where the current user is lending an item to someone else    
     lender_interactions = db.execute(
         """SELECT
-            inquiries.request, interactions.*, 
+            inquiries.request, inquiries.exp_date, interactions.*, 
             responses.img_path, responses.lending_exp_date,
-            users.name, users.username, users.img_path, users.college
+            users.name, users.username, users.img_path AS user_img, users.college
             FROM inquiries 
             JOIN interactions ON inquiries.id = interactions.inquiry_id
             JOIN responses ON inquiries.id = responses.inquiry_id
