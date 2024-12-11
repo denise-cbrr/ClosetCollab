@@ -1,27 +1,35 @@
+ <!-- Extends base template -->
 {% extends "layout.html" %}
+ <!-- Sets page title -->
 {% block title %}Feed{% endblock %}
 
+ <!--Main content -->
 {% block main %}
 <div class="page-container">
    <h1 class="page-title">Feed</h1>
-
    <div class="new-inquiry-container">
     <button class="btn-primary" id="addInquiryBtn">Add an Inquiry</button>
 </div>
 
+<!--Modal for creating a new inquiry-->
     <div class="modal" id="newInquiryModal">
         <div class="modal-dialog">
             <div class="modal-content">
+                <!--Modal header-->
                 <div class="modal-header">
                     <h5 class="modal-title">Add an inquiry!</h5>
+                    <!--Close button-->
                     <button type="button" class="btn-close"></button>
                 </div>
                 <div class="modal-body">
                     <form action="{{ url_for('feed') }}" method="post">
+                        <!--User request input-->
                         <div class="mb-3">
                             <input class="form-control" name="userRequest" placeholder="Explain your request" type="text" required>
                         </div>
+                        <!--Style selection-->
                         <div class="mb-3">
+                            <!--List of clothing items-->
                             <select name="style" class="form-select" multiple>
                                 {% set styles = ['Comfortable', 'Formal', 'Casual', 'Streetwear', 'Athleisure', 'Grunge', 'Black-Tie', 'Cocktail', 'Y2K', 'Performance-Related', 'Outdoors', 'Cottagecore', 'Collegiate', 'Emo'] %}
                                 {% for style in styles %}
@@ -29,6 +37,7 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <!--Size selection-->
                         <div class="mb-3"> 
                             <select name="size" class="form-select" required>
                                 <option disabled selected value="">Size</option>
@@ -38,6 +47,7 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <!--Item type selection-->
                         <div class="mb-3">
                             <select name="item" class="form-select">
                                 <option disabled selected value="">Item type</option>
@@ -47,9 +57,11 @@
                                 {% endfor %}
                             </select>
                         </div>
+                       <!--Expiration date input-->
                         <div class="mb-3">
                             <input class="form-control" name="expirationDate" type="date" required>
                         </div>
+                      <!--Submit button for new inquiries-->
                         <button type="submit" class="btn-primary">Submit Request</button>
                     </form>
                 </div>
@@ -57,9 +69,11 @@
         </div>
     </div>
 
-   <div class="filter-container">
+   <!--Filtering section for new inquiries -->
+    <div class="filter-container">
        <form action="{{ url_for('feed') }}" method="GET" class="filter-form">
-           <div class="filter-group">
+           <!--Style filter dropdown-->
+        <div class="filter-group">
                <label for="styleFilter">Style:</label>
                <select name="styleFilter" id="styleFilter" class="filter-select">
                    <option disabled selected value="">All</option>
@@ -68,6 +82,7 @@
                     {% endfor %}
                </select>
            </div>
+          <!--Size type dropdown-->
            <div class="filter-group">
                <label for="sizeFilter">Size:</label>
                <select name="sizeFilter" id="sizeFilter" class="filter-select">
@@ -77,6 +92,7 @@
                     {% endfor %}
                </select>
            </div>
+           <!--Item type dropdown-->
            <div class="filter-group">
             <label for="typeFilter">Type:</label>
             <select name="typeFilter" id="typeFilter" class="filter-select">
@@ -86,34 +102,42 @@
                 {% endfor %}
             </select>
         </div>
-           <button type="submit" class="btn-primary">Apply Filters</button>
+          <!--Buttons to apply the filters-->
+        <button type="submit" class="btn-primary">Apply Filters</button>
        </form>
    </div>
 
    <div class="inquiries-container">
-       {% for result in results %}
+    <!--Iterates through the inquiry results-->
+    {% for result in results %}
        <div class="inquiry-card">
-           <div class="inquiry-header">
+          <!--Inquiry header w user info-->
+        <div class="inquiry-header">
                <div class="inquiry-user">
+               <!--Displays user image or default avatar-->
                 {% if result.img_path %}
                     <img src="{{ url_for('static', filename=result.img_path) }}" alt="Item Image" class="user-img">
                 {% else %}
                     <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
                 {% endif %}
-                   <div class="inquiry-user-info">
-                        <h3 class="name">{{result.name}}</h3>
+                 <!--User details-->
+                <div class="inquiry-user-info">
+                       <h3 class="name">{{ result.name }}</h3>
                        <p class="username">{{ result.username }}</p>
                        <p class="college">{{ result.college }}</p>
                    </div>
                </div>
+              <!--Tag associated with the inquiry-->
                <div class="inquiry-tags">
                    {% for tag in result.tags.split(', ') %}
                        <span class="tag">{{ tag }}</span>
                    {% endfor %}
                </div>
            </div>
+           <!--Inquiry request details-->
            <p class="inquiry-request">{{ result.request }}</p>
-           <p class="inquiry-expiration">Expires: {{ result.exp_date }}</p>
+           <p class="inquiry-expiration">Deadline: {{ result.exp_date }}</p>
+          <!--Action button to respond to inquiries-->
            <div class="inquiry-actions">
                <a href="{{ url_for('inquiry', inquiry_id=result.id) }}">
                    <button class="btn-primary">Respond to Request</button>
@@ -122,24 +146,27 @@
        </div>
        {% endfor %}
    </div>
-
-   
 </div>
 
+<!--Java script for modal-->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-   const addButton = document.querySelector('#addInquiryBtn');
+   // Select modal elements 
+    const addButton = document.querySelector('#addInquiryBtn');
    const modal = document.querySelector('#newInquiryModal');
    const closeBtn = document.querySelector('.btn-close');
 
+   // Event listener to open modal when add inquiry is clicked
    addButton.addEventListener('click', () => {
        modal.classList.add('show');
    });
 
+   // Event listener to close modal when close button is clicked 
    closeBtn.addEventListener('click', () => {
        modal.classList.remove('show');
    });
 
+   // Event listener to close modal when clicking outside the modal
    window.addEventListener('click', (e) => {
        if (e.target === modal) {
            modal.classList.remove('show');

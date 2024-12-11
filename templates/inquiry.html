@@ -3,93 +3,141 @@
 
 {% block main %}
 <div class="page-container">
-    <div class="inquiry-details-fade-element">
+    <!--Displays inquiry deadline-->
+    <p>Deadline: {{inquiry.exp_date}}</p>
+     <!--Container for inquiry request and replies-->
+    <div class="inquiry_request_with_replies">
         <h2 class="h2">{{inquiry.request}}</h2>
-        <p>Expires: {{inquiry.exp_date}}</p>
     </div>
-
+    
+ <!--Check if the current user is not the owner of the inquiry-->
     {% if not is_owner %}
-    <div class="response-container-fade-element">
-        <form action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" enctype="multipart/form-data" class="response-form">
-            <div class="mb-3">
-                <textarea class="form-control" name="replyResponse" placeholder="Describe your item" required></textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Upload a picture</label>
-                <input class="form-control" name="replyPic" type="file" accept="image/*" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Return by date</label>
-                <input class="form-control" name="lending_exp_date" type="date" required>
-            </div>
-            <button class="btn-primary" type="submit">Submit Response</button>
-        </form>
-    </div>
-    {% endif %}
+    <!-- Button trigger modal (just something random from bootstrap) -->
+    <button id="postRes" type="button" class="btn-primary" data-bs-toggle="modal" data-bs-target="#resMod">
+        Post a Response
+    </button>
 
-    {% if responses %}
-    <div class="responses-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 0 auto;">
-        {% for response in responses %}
-        <div class="interaction-card" style="flex: 0 0 calc(45% - 10px); min-width: 300px;" id="reply-{{ response.id }}">
-            <div class="response-header">
-                {% if response.lender_img %}
-                    <img src="{{ url_for('static', filename=response.lender_img) }}" alt="User Image" class="user-img" style="width: 90px; height: 90px; margin-top: 20px;">
-                {% else %}
-                    <p>No image uploaded yet.</p>
-                {% endif %}
-                <h3>{{ response.lender_name }}</h3>
-                <h4>{{ response.lender_username }}</h4>
-                <p class="response-date">Return by: {{ response.lending_exp_date }}</p>
+    <!-- Modal for the response form -->
+    <div class="modal fade" id="resMod" tabindex="-1" aria-lbelledby="Response Modal" aria-hidden="true">
+        <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Respond to Inquiry</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <p class="response-text">{{ response.reply }}</p>
-            {% if response.img_path %}
-            <div class="response-image">
-                <img src="{{ url_for('static', filename=response.img_path) }}" alt="Item Image" class="item-img">
+            <div class="modal-body">
+                <form action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" enctype="multipart/form-data" class="response-form">
+                     <!--Response text area-->
+                    <div class="mb-3">
+                        <label class="form-label">Have an item to lend? </label>
+                        <textarea class="form-control" name="replyResponse" placeholder="Describe your item" required></textarea>
+                    </div>
+                    <!--Response image upload-->
+                    <div class="mb-3">
+                        <label class="form-label">Upload a picture: </label>
+                        <input class="form-control" name="replyPic" type="file" accept="image/*" required>
+                    </div>
+                     <!--Lending expiration date-->
+                    <div class="mb-3">
+                        <label class="form-label">Return by date: </label>
+                        <input class="form-control" name="lending_exp_date" type="date" required>
+                    </div>
+                    <!--Submit and close buttons-->
+                    <button class="btn-primary" type="submit">Submit Response</button>
+                    <button id="closeBtn" type="button" class="btn-primary" data-bs-dismiss="modal">Close</button>
+                </form>
             </div>
-            {% endif %}
-            {% if is_owner %}
-            <div class="response-actions">
-                <button class="accept-btn" id="btn-primary" data-id="{{ response.id }}">Accept</button>
-                <button class="decline-btn" id="btn-primary" data-id="{{ response.id }}">Decline</button>
-            </div>
-            {% endif %}
         </div>
-        {% endfor %}
+        </div>
     </div>
-    
-
-    {% if is_owner %}
-    <form id="confirm-selection-form" action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" class="confirmation-form">
-        <button class="confirm-accept-btn">Confirm Selection</button>
-        <input type="hidden" id="accepted-id-input" name="accepted_id">
-        <input type="hidden" id="declined-ids-input" name="declined_ids">
-    </form>
     {% endif %}
-    {% else %}
+
+     <!--Check if there are any responses-->
+    {% if responses %}
+        <p class="page-description">📦 Possible items to borrow from other users!</p>
+ <!--Container for the response cards-->
+        <div class="responses-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 0 auto;">
+            {% for response in responses %}
+            <!--Individual response cards -->
+            <div class="interaction-card" style="flex: 0 0 calc(45% - 10px); min-width: 300px;" id="reply-{{ response.id }}">
+                <div class="inquiry-header">
+                    <div class="inquiry-user">
+                         <!--Displays user's profile image OR default avatar-->
+                        {% if response.profile %}
+                            <img src="{{ url_for('static', filename=response.profile) }}" alt="User Image" class="user-img" style="width: 90px; height: 90px; margin-top: 20px;">
+                        {% else %}
+                            <img src="/static/avatar.svg" alt="User Avatar" class="inquiry-avatar">
+                        {% endif %}
+                        <div class="inquiry-user-info">
+                            <h3 class="name">{{ response.name }}</h3>
+                            <p class="username">{{ response.username }}</h4>
+                            <p class="college">{{ response.college }}</p>
+                            <p class="return-date">Return by: {{ response.lending_exp_date }}</p>
+                        </div>
+                        
+                    </div>  
+                </div>
+                <div class="response-image-and-reply">
+                     <!--Displays the response's item image-->
+                    <img src="{{ url_for('static', filename=response.img_path) }}" alt="Item Image" class="item-img">
+                    <div class="reply-box">
+                        <p>{{ response.reply }}</p>
+                    </div>
+                </div>
+                 <!--Check if current user is the owner of inquiry-->
+                {% if is_owner %}
+                <div class="response-actions">
+                    <button class="accept-btn" id="btn-primary" data-id="{{ response.id }}">Accept</button>
+                    <button class="decline-btn" id="btn-primary" data-id="{{ response.id }}">Decline</button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    
+        <!--Check if current user is the owner of inquiry-->
         {% if is_owner %}
-        <p class="no-responses">No responses yet</p>
+         <!--Form for confirming the selected response-->
+        <form id="confirm-selection-form" action="{{ url_for('inquiry', inquiry_id=inquiry.id) }}" method="post" class="confirmation-form">
+            <button class="confirm-accept-btn">Confirm Selection</button>
+            <input type="hidden" id="accepted-id-input" name="accepted_id">
+            <input type="hidden" id="declined-ids-input" name="declined_ids">
+        </form>
         {% endif %}
-    {% endif %}
+
+    {% else %}
+     <!--Displays a message if there are no responses-->
+        {% if is_owner %}
+            <p class="page-description">⏰ Waiting for some responses... Waiting for our users...</p>
+        {% endif %}
+    {% endif %}   
     </div>
-    
 
 
+<!--Javascript code for handling response actions and modal-->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    // Intialize variables to keep track of the accepted reply and replies to be deleted
     let acceptedReplyId = null;
     let to_be_deleted = new Set();
 
+    // Loop through all the response cards 
     document.querySelectorAll(".interaction-card").forEach(card => {
+        // Get the reply ID from the cards ID
         let id_for_sql = parseInt(card.id.replace('reply-', ''), 10);
         const acceptBtn = card.querySelector(".accept-btn");
         const declineBtn = card.querySelector(".decline-btn");
 
+        // Add click event listener to the accept button
         if (acceptBtn) {
             acceptBtn.addEventListener("click", () => {
+               // Remove the "declined" class from the decline button
                 declineBtn.classList.remove("declined");
                 
+                // Remove the current reply ID from the to_be_deleted set
                 to_be_deleted.delete(id_for_sql);
 
+                 // If there was a previously accepted reply, remove the "accepted" and "declined" classes from its buttons
                 if (acceptedReplyId) {
                     const previousCard = document.querySelector(`#reply-${acceptedReplyId}`);
                     if (previousCard) {
@@ -100,35 +148,43 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
                 
+                // Update the accepted reply ID and add the "accepted" class to the current accept button
                 acceptedReplyId = id_for_sql;
                 acceptBtn.classList.add("accepted");
                 declineBtn.classList.remove("declined");
             });
         }
 
+        // Add click event listener to the decline button
         if (declineBtn) {
             declineBtn.addEventListener("click", () => {
                 
+                 // If the current reply was the accepted one, remove the "accepted" class from its accept button
                 if (acceptedReplyId == id_for_sql) {
                     acceptBtn.classList.remove("accepted");
                     acceptedReplyId = null;
                 }
                 
+                // Add the "declined" class to the decline button and add the current reply ID to the to_be_deleted set
                 declineBtn.classList.add("declined");
                 to_be_deleted.add(id_for_sql);
             });
         }
     });
 
+    // Get the confirmation form element
     const form = document.getElementById("confirm-selection-form");
+    // Add submit event listener to the confirmation form
     if (form) {
         form.addEventListener("submit", (event) => {
+           // Get the input elements for the declined IDs and the accepted ID
             const declinedIdsInput = document.getElementById("declined-ids-input");
             declinedIdsInput.value = Array.from(to_be_deleted).join(',');
 
             const acceptedIdInput = document.getElementById("accepted-id-input");
             acceptedIdInput.value = acceptedReplyId;
             
+            // If no reply has been accepted and no replies have been declined, prevent the form submission and show an alert
             if (!acceptedReplyId && to_be_deleted.size === 0) {
                 event.preventDefault();
                 alert("Please select something before confirming!");
@@ -137,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Add event listener for fade-in animation on scroll
 document.addEventListener('DOMContentLoaded', function() {
     const fadeElements = document.querySelectorAll('.response-container-fade-element');
     const headerHeight = document.querySelector('header').offsetHeight;
@@ -144,6 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function checkScroll() {
         fadeElements.forEach(element => {
             const rect = element.getBoundingClientRect();
+            // Check if the element is in the viewport and add/remove the "fade-in" class accordingly
             if (rect.top >= headerHeight && rect.bottom <= window.innerHeight) {
                 element.classList.add('fade-in');
             } else {
@@ -152,9 +210,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
         
+     // Add event listeners for scroll and resize events to update the fade-in animation
     window.addEventListener('scroll', checkScroll);
     window.addEventListener('resize', checkScroll);        checkScroll();
 });
+
+// Add event listener for modal show/hide
+document.addEventListener('DOMContentLoaded', function() {
+       const addButton = document.querySelector('#postRes');
+       const modal = document.querySelector('#resMod');
+       const closeBtn = document.querySelector('#closeBtn');
+    
+       // Add click event listener to the "Post a Response" button to show the modal
+       addButton.addEventListener('click', () => {
+           modal.classList.add('show');
+       });
+    
+       // Add click event listener to the close button to hide the modal
+       closeBtn.addEventListener('click', () => {
+           modal.classList.remove('show');
+       });
+    
+        // Add click event listener to the modal element to hide it when clicked outside the content
+       window.addEventListener('click', (e) => {
+           if (e.target === modal) {
+               modal.classList.remove('show');
+           }
+       });
+    });
 
 </script>
 {% endblock %}

@@ -6,23 +6,31 @@ Register
 
 {% block main %}
 <div class="content">
+    <!-- Page title -->
    <h2 class="h2">Register</h2>
+    <!-- Registration form -->
    <form action="{{ url_for('register') }}" method="post" class="register-form">
-       <div class="mb-3">
-           <input autocomplete="off" autofocus class="form-control" name="name" placeholder="Name" type="text">
+    <!-- Name input --> 
+    <div class="mb-3">
+           <input autocomplete="off" autofocus class="form-control" name="name" placeholder="Name" type="text" maxlength="20">
        </div>
+       <!-- Email input -->
        <div class="mb-3">
-           <input class="form-control" name="email" placeholder="Email" type="email">
+           <input class="form-control" name="email" placeholder="Email" type="email" maxlength="20">
        </div>
+        <!-- Username input -->
        <div class="mb-3">
-           <input autocomplete="off" class="form-control" name="username" placeholder="Username" type="text">
+           <input autocomplete="off" class="form-control" name="username" placeholder="Username" type="text" maxlength="20">
        </div>
+        <!-- Password input -->
        <div class="mb-3">
            <input class="form-control" name="password" placeholder="Password" type="password">
        </div>
+      <!-- Confirm password input -->
        <div class="mb-3">
            <input class="form-control" name="confirmation" placeholder="Confirm your password" type="password">
        </div>
+          <!-- College selection dropdown -->
        <div class="mb-3">
            <select name="college" class="form-select" aria-label="Default select example">
                <option disabled selected value="">Residential College</option>
@@ -42,6 +50,7 @@ Register
                <option value="Trumbull">Trumbull</option>
            </select>
        </div>
+        <!-- Register button -->
        <button class="btn btn-primary" type="submit">Register</button>
    </form>
 </div>

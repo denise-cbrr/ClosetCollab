@@ -3,7 +3,8 @@ import requests
 from flask import redirect, render_template, session
 from functools import wraps
 
-
+# Taken from finance
+# Ensures login is required for accessing certain pages
 def login_required(f):
     """
     Decorate routes to require login.
@@ -19,6 +20,7 @@ def login_required(f):
 
     return decorated_function
 
+# Returns a customized apology page for some issue
 def apology(message, code=400):
     """Render message as an apology to user."""
 

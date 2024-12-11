@@ -6,45 +6,49 @@
 {% block main %}
 
 <div class="profile-container">
+     <!-- Page title -->
     <h1 class="page-title">My Profile</h1>
     
-    
+      <!-- Profile picture container -->
     <div class="profile-picture-container">
         {% if picture %}
+         <!-- Display the user's profile picture if available -->
         <div class="profile-image">
             <img src="{{ url_for('static', filename=picture) }}" alt="User Image" class="profile-image">
         </div>
         {% else %}
+         <!-- Display a message if no profile picture is available -->
         <p>No image uploaded yet.</p>
         {% endif %}
+
+         <!-- Button to open the profile picture update modal -->
         <button class="btn-primary" id="updatePicture">
             Update Profile Picture
         </button>
     </div>
-    
+   
+    <!-- Profile picture update modal -->
     <div class="modal fade" id="updPicMod" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Update Profile Picture</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Profile picture update form -->
                     <form action="/profile" method="post" enctype="multipart/form-data">
                         <div class="mb-3">
                             <input name="profilePic" placeholder="Image: " type="file" accept="image/*" class="form-control">
                         </div>
                         <button class="btn-primary" type="submit">Upload</button>
+                        <button id="closeBtn" type="button" class="btn-primary" data-bs-dismiss="modal">Close</button>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-primary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn-primary">Save changes</button>
                 </div>
             </div>
         </div>
     </div>
 
+      <!-- Profile information table -->
     <div class="profile-info">
         <table class="profile-table">
             <tbody>
@@ -64,8 +68,9 @@
         </table>
     </div>
 
-    <div class="inquiries-container">
-        <h2 class="section-title">My Inquiries</h2>
+    <div>
+        <!-- User's inquiries table -->
+        <h2>My Inquiries</h2>
         <table class="inquiry-table">
             <thead>
                 <tr>
@@ -81,11 +86,14 @@
                     <td>{{inquiry.request}}</td>
                     <td>{{inquiry.exp_date}}</td>
                     {% if inquiry.accepted == "yes" %}
+                    <!-- User has accepted a response for their inquiry -->
                     <td><span class="status accept">ACCEPTED</span></td>
                     {% else %}
+                    <!-- User has not accepted a response for their inquiry -->
                     <td><span class="status pending">WAITING</span></td>
                     {% endif %}
                     <td>
+                         <!-- Link to the inquiry page -->
                         <a href="{{ url_for('inquiry', inquiry_id=inquiry.id) }}">
                             <button type="button" class="btn-primary">View replies!</button>
                         </a>
@@ -99,19 +107,26 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-       const addButton = document.querySelector('#updatePicture');
+       // Get references to the necessary DOM elements
+        const addButton = document.querySelector('#updatePicture');
        const modal = document.querySelector('#updPicMod');
-       const closeBtn = document.querySelector('.btn-close');
+       const closeBtn = document.querySelector('#closeBtn');
     
+       // Add click event listener to the "Update Profile Picture" button
        addButton.addEventListener('click', () => {
+         // Show the profile picture update modal
            modal.classList.add('show');
        });
     
+       // Add click event listener to the close button in the modal
        closeBtn.addEventListener('click', () => {
+         // Hide the profile picture update modal
            modal.classList.remove('show');
        });
     
+         // Add click event listener to the modal element itself
        window.addEventListener('click', (e) => {
+         // If the user clicks outside the modal content, hide the modal
            if (e.target === modal) {
                modal.classList.remove('show');
            }

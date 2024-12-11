@@ -1,4 +1,4 @@
-/* Main layout and body styling taht sets up basic page structure
+/* Main layout and body styling that sets up basic page structure
 Makes sure that the page takes up full height w proper spacing*/
 html, body {
   height: 100%;
@@ -20,6 +20,14 @@ html, body {
   font-family: 'Abril Fatface';
 }
 
+.inquiry_request_with_replies {
+  max-height: 30vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px;
+  word-wrap: break-word; /* Ensure words break and don't overflow horizontally */
+  text-align: left;
+}
 /* Page container styling that sets up max width and centers content */
 .page-container {
   width: 95%;
@@ -42,7 +50,7 @@ html, body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Content text and image styling  */
+/* Content text and image styling for text and images within content sections */
 .content-p {
   font-size: 1em;
   margin-bottom: 20px;
@@ -54,7 +62,7 @@ html, body {
   border-radius: 10px;
 }
 
-/* Header */
+/* Header image styling for a fixed header with background image*/
 .header-img-container {
   background-image: url("/static/closetcollab.jpg");
   opacity: 1;
@@ -75,6 +83,7 @@ html, body {
   transition: transform 0.3s ease-in-out;
 }
 
+/* Title styling that centers main title in header with shadow*/
 .title-container {
   position: absolute;
   top: 50%;
@@ -86,6 +95,7 @@ html, body {
   z-index: 101;
 }
 
+/*Styles the main h1 headers that are within the title container*/
 .title-container h1 {
   font-size: 2.5rem;
   color: white;
@@ -94,7 +104,7 @@ html, body {
   margin: 0;
 }
 
-/* Navbar fixes */
+/* Navbar styling- creates fixed navbar below the header w gradient */
 .navbar-container {
   background: radial-gradient(white, #223030) !important;
   padding: 8px 20px;
@@ -109,15 +119,18 @@ html, body {
   height: 50px;
 }
 
+/*inquiry tag spacing */
 .inquiry-tags {
-  margin-left: 1.5rem; /* Adds horizontal spacing between profile and tags */
+  margin-left: 1.5rem; 
 }
 
+/*navbar container fluid, removes padding */
 .navbar-container .container-fluid {
   padding: 0;
   height: 100%;
 }
 
+/*main navbar styling, creates fixed nav with gradient */
 .navbar-container.navbar {
   background: radial-gradient(white, #223030) !important;
   padding: 8px 20px;
@@ -132,6 +145,7 @@ html, body {
   height: auto;
 }
 
+/* controls the height of various navbar elements in nav container */
 .navbar-container .container {
   height: auto;
   min-height: unset;
@@ -145,12 +159,14 @@ html, body {
   padding: 8px 16px !important;
 }
 
+/*navigation bar layout, centers navigation elements*/
 .navbar {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+/*mobile navigation toggle button, hidden by default */
 .navbar-toggler {
   display: none;
   background: none;
@@ -158,6 +174,7 @@ html, body {
   cursor: pointer;
 }
 
+/*navbar toggle for mobile */
 .navbar-toggler .icon-bar {
   display: block;
   width: 20px;
@@ -167,6 +184,7 @@ html, body {
   transition: background-color 0.3s;
 }
 
+/*nav list styling, creates horizontal list of nav items */
 .navbar-nav {
   display: flex;
   list-style-type: none;
@@ -174,12 +192,14 @@ html, body {
   padding: 0;
 }
 
+/*nav item styling that spaces and centers nav links */
 .navbar-nav li {
   margin: 0 10px;
   flex: 1;
   text-align: center;
 }
 
+/* nav link styling, sets appearance of nav text */
 .navbar-nav li a {
   color: #200e0e !important;
   text-decoration: none;
@@ -189,10 +209,12 @@ html, body {
   padding: 12px;
 }
 
+/*changes color of nav items on hover*/
 .navbar-nav li a:hover {
   color: #333;
 }
 
+/*Inquiries grid container, creates two column layout for inquiry cards */
 .inquiries-container {
   display: grid !important;
   grid-template-columns: repeat(2, 1fr) !important;
@@ -205,7 +227,7 @@ html, body {
   padding: 0 !important;
 }
 
-/* Filter Container Styles */
+/* Filter Container Styling that creates white container for filter controls */
 .filter-container {
   background-color: white;
   padding: 20px;
@@ -216,6 +238,7 @@ html, body {
   text-align: center;
 }
 
+/*Filter form layout, arranges filter elements horizontally*/
 .filter-form {
   display: flex;
   justify-content: center;
@@ -224,11 +247,13 @@ html, body {
   flex-wrap: nowrap;
 }
 
+/*Filter group sizing, controls width of filter elements */
 .filter-group {
   flex: 0 1 auto;
   min-width: 200px;
 }
 
+/*Filter select styling, styles dropdown menus in filter*/
 .filter-select {
   width: 100%;
   padding: 10px;
@@ -237,7 +262,7 @@ html, body {
   font-family: 'Merriweather', serif;
 }
 
-/* Table Styles */
+/* Table container styling, creeates scrollable container for tables */
 .table-container {
   margin: 20px auto;
   background-color: white;
@@ -250,6 +275,7 @@ html, body {
   overflow-y: auto;
 }
 
+/*Table base styling, sets up basic table appearance */
 .styled-table {
   width: 100%;
   border-collapse: collapse;
@@ -258,6 +284,7 @@ html, body {
   text-align: center;
 }
 
+/* Table header styling, creates sticky headers with dark backgrounds */
 .styled-table th {
   background-color: #223030;
   color: white;
@@ -267,6 +294,7 @@ html, body {
   top: 0;
 }
 
+/*Table cell w hover styling that adds borders*/
 .styled-table td {
   padding: 12px;
   border-bottom: 1px solid #ddd;
@@ -276,7 +304,7 @@ html, body {
   background-color: #f5f5f5;
 }
 
-/* Footer */
+/* Footer styling that creates sticky footer at the bottom of page */
 .footer {
   background-color: #223030;
   color: #fff;
@@ -292,9 +320,9 @@ html, body {
   margin: 0;
 }
 
-/* Accepted state */
+/* accepted button styling, green background if accepted*/
 .accepted {
-  background-color: #4caf50;  /* Green for accepted */
+  background-color: #4caf50;  
   color: white;
   border-color: #388e3c; 
   display: inline-block;
@@ -307,12 +335,11 @@ html, body {
   cursor: pointer;
   transition: background-color 0.3s, transform 0.3s;
   margin: 0 15px;
-  font-family: 'Merriweather', serif; /* Darker green for the border */
+  font-family: 'Merriweather', serif; 
 }
-
-/* Declined state */
+/* Declined button styling, red for declined */
 .declined {
-  background-color: #f44336;  /* Red for declined */
+  background-color: #f44336;  
   color: white;
   border-color: #d32f2f;
   display: inline-block;
@@ -325,11 +352,12 @@ html, body {
   cursor: pointer;
   transition: background-color 0.3s, transform 0.3s;
   margin: 0 15px;
-  font-family: 'Merriweather', serif;  /* Darker red for the border */
+  font-family: 'Merriweather', serif;  
 }
 
-/* Button styling */
-button {
+/* Button and form container styling - sets up interactive elements */
+button, .btn {
+  /* transitions for all button states */
   transition: background-color 0.3s, border-color 0.3s, color 0.3s;
   display: inline-block;
   background-color: #BBA58F;
@@ -340,59 +368,31 @@ button {
   text-decoration: none;
   font-size: 1.0em;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.3s;
   margin: 0 15px;
   font-family: 'Merriweather', serif;
 }
 
-button:hover{
+/* Button hover states */
+button:hover, .btn:hover {
   background-color: #223030;
   color: white;
   transform: scale(1.05);
 }
 
-button:focus {
+/* Button interaction states - changes button styling with interations */
+button:focus, .btn:focus {
   outline: none;
+  /* Adds subtle glow effect when focused */
   box-shadow: 0 0 5px 2px rgba(187, 165, 143, 0.5);
 }
 
-button:active {
+ /* Slightly shrinks button when clicked */
+button:active, .btn:active {
   transform: scale(0.95);
   background-color: #AA927E;
 }
 
-.btn {
-  transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-  display: inline-block;
-  background-color: #BBA58F;
-  color: #223030;
-  border: none;
-  border-radius: 10px;
-  padding: 15px 30px;
-  text-decoration: none;
-  font-size: 1.2em;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.3s;
-  margin: 0 15px;
-  font-family: 'Merriweather', serif;
-}
-
-.btn:hover{
-  background-color: #223030;
-  color: white;
-  transform: scale(1.05);
-}
-
-.btn:focus {
-  outline: none;
-  box-shadow: 0 0 5px 2px rgba(187, 165, 143, 0.5);
-}
-
-.btn:active {
-  transform: scale(0.95);
-  background-color: #AA927E;
-}
-
+/*Form container that centers form elements w spacing */
 .form-container {
   display: flex;
   justify-content: center;
@@ -401,7 +401,7 @@ button:active {
   margin-bottom: 70px;
 }
 
-/* Modal Customization */
+/* Modal styling that creates overlay dialog windows */
 .modal {
   display: none;
   position: fixed;
@@ -413,12 +413,14 @@ button:active {
   z-index: 1000;
 }
 
+/*centers modal content when visible */
 .modal.show {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+/*modal compontents, styles individual parts of the modal */
 .modal-dialog {
   max-width: 500px;
   margin: 1.75rem auto;
@@ -431,6 +433,7 @@ button:active {
   text-align: center;
 }
 
+/*modal header styling*/
 .modal-header {
   background-color: #223030;
   color: white;
@@ -438,6 +441,7 @@ button:active {
   justify-content: center;
 }
 
+/*modal text styling */
 .modal-title {
   color: white;
   font-family: 'Merriweather', serif;
@@ -454,7 +458,7 @@ button:active {
   right: 10px;
 }
 
-/* Registration Form Styling */
+/* Registration Form Styling, creates centered form layout */
 .register-form {
   max-width: 600px;
   margin: 40px auto;
@@ -464,21 +468,14 @@ button:active {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+/*form margin*/
 .mb-3 {
   margin-bottom: 20px;
   text-align: center;
 }
 
-.form-control {
-  width: 100%;
-  max-width: 450px;
-  padding: 10px;
-  border: 2px solid #223030;
-  border-radius: 8px;
-  font-family: 'Merriweather', serif;
-  margin: 0 auto;
-}
-
+/* Form input styling */
+.form-control,
 .form-select {
   width: 100%;
   max-width: 450px;
@@ -487,10 +484,9 @@ button:active {
   border-radius: 8px;
   font-family: 'Merriweather', serif;
   margin: 0 auto;
-  background-color: white;
 }
 
-/* Inquiry Styles */
+/* Inquiry grid container */
 .inquiries-container {
   display: grid !important;
   grid-template-columns: repeat(2, 1fr) !important;
@@ -503,6 +499,7 @@ button:active {
   padding: 0 !important;
 }
 
+/* Individual inquiry card styling */
 .inquiry-card {
   background: linear-gradient(145deg, #ffffff, #f0f0f0) !important;
   border: 1px solid #ddd !important;
@@ -510,8 +507,101 @@ button:active {
   padding: 20px !important;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
   margin: 0 !important;
+  height: 300px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevents horizontal scroll */
 }
 
+/* Container for scrollable content */
+.inquiry-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 60px;
+}
+
+/* Keep text from causing horizontal scroll */
+.inquiry-request {
+  margin-top: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  padding-right: 10px;
+  text-align: left;
+}
+
+/* Tag container display styling */
+.inquiry-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 350px;
+  justify-content: right;
+  max-height: 80px; 
+  overflow-y: auto; /* Enable vertical scrolling */
+  padding-right: 10px;
+  transition: max-height 0.3s ease;
+}
+
+/* Individual tag prevention of text overflow */
+.tag {
+  background-color: #223030;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.8em;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Fixed action button container */
+.inquiry-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Make scrollbars less obtrusive */
+.inquiry-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.inquiry-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+/* Inquiry content styling */
+.inquiry-request {
+  margin-top: 10px;
+  /* Add these properties to handle long text */
+  max-height: 100px; /* Adjust as needed */
+  overflow-y: auto;
+  padding-right: 10px;
+  word-wrap: break-word; 
+}
+
+/* Make scrollbars less obtrusive */
+.inquiry-card::-webkit-scrollbar,
+.inquiry-tags::-webkit-scrollbar,
+.inquiry-request::-webkit-scrollbar {
+  width: 6px;
+}
+
+.inquiry-card::-webkit-scrollbar-thumb,
+.inquiry-tags::-webkit-scrollbar-thumb,
+.inquiry-request::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+
+/*Inquiry header layout, aligns user info and actions*/
 .inquiry-header {
   display: flex;
   justify-content: space-between;
@@ -520,11 +610,13 @@ button:active {
   margin-bottom: 10px;
 }
 
+/*User section in inquiry */
 .inquiry-user {
   display: flex;
   align-items: center;
 }
 
+/*Makes avatar circular*/
 .inquiry-avatar {
   width: 40px;
   height: 40px;
@@ -532,6 +624,7 @@ button:active {
   margin-right: 10px;
 }
 
+/*User info text styling (e.g. with their attributes: name, college, username)*/
 .inquiry-user-info h3 {
   margin: 0;
   font-size: 1.2em;
@@ -543,40 +636,15 @@ button:active {
   color: #666;
 }
 
-.inquiry-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  max-width: 350px;
-  justify-content: right;
-}
 
-.tag {
-  background-color: #223030;
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 0.8em;
-  max-width: 100%;
-}
-
-.inquiry-request {
-  margin-top: 10px;
-}
-
+/*Makes expiration slightly smaller than main text */
 .inquiry-expiration {
   font-size: 0.9em;
   color: #666;
   margin-top: 10px;
 }
 
-.inquiry-actions {
-  display: flex;
-  justify-content: flex-end;
-  width: 100%;
-  margin-top: 10px;
-}
-
+/*makes container full width, styles display*/
 .new-inquiry-container {
   width: 100%;
   display: flex;
@@ -584,6 +652,7 @@ button:active {
   margin: 30px 0;
 }
 
+/*page hedaer styling*/
 .page-title {
   text-align: center;
   width: 100%;
@@ -592,28 +661,41 @@ button:active {
   font-family: 'Merriweather', serif;
 }
 
-/* Status Styles */
-.accepted {
-  background-color: green;
-  color: white;
-}
-
-.declined {
-  background-color: red;
-  color: white;
-}
-
+/* Status indicators that show up in user's profile */
 .accept {
   background-color: green;
   color: white;
+  padding: 5px 10px;
+  border-radius: 1em;
 }
 
 .pending {
   background-color: yellow;
   color: black;
+  padding: 5px 10px;
+  border-radius: 15px;
 }
 
-/* Animation Styles */
+/*Text status colors*/
+.pendingStatus {
+  color: rgb(247, 214, 0);
+}
+
+
+/*blue for in progress items */
+.progressStatus{
+  color: blue;
+}
+
+.completedStatus {
+  color: green;
+}
+
+.lateLost {
+  color: red;
+}
+
+/* Fade animations */
 .fade-element {
   opacity: 0;
   transition: opacity 0.5s ease;
@@ -627,7 +709,6 @@ button:active {
   opacity: 0;
 }
 
-/* Profile Styles */
 .profile-container {
   max-width: 800px;
   margin: 0 auto;
@@ -640,15 +721,18 @@ button:active {
   margin-bottom: 20px;
 }
 
+/*Adds cell padding to profile table*/
 .profile-table td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
 }
 
+/*Makes the labels bold in profile table*/
 .profile-table td:first-child {
   font-weight: bold;
 }
 
+/*Profile image styling */
 .profile-image {
   width: 300px;
   height: 300px;
@@ -658,12 +742,14 @@ button:active {
   margin-bottom: 20px;
 }
 
+/* Inquiry table styling */
 .inquiry-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
 }
 
+/*Styles cells in the inquiry tables, adds internal spacing*/
 .inquiry-table th,
 .inquiry-table td {
   padding: 10px;
@@ -671,24 +757,37 @@ button:active {
   text-align: left;
 }
 
-.inquiry-table th {
-  background-color: #f2f2f2;
+/* Restrict the 'Request' column's width and make it scrollable (if there's overflow) */
+.inquiry-table td:first-child {
+  max-width: 200px; 
+  height: 100px; 
+  overflow-y: auto; 
+  display: block;
 }
 
+/* Ensures long words break onto the next line (used for long requests when they show up in interactions)*/
+.inquiry-table td {
+  word-wrap: break-word; 
+}
+
+/* Interactions grid layout */
 .interactions-container {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1fr; /* Each column takes up equal space */
   gap: 30px;
+  width: 100%; /* Make the container span its parent */
 }
-
+/*Container styling for lending/borrowing sections*/
 .lending-container,
 .borrowing-container {
   background-color: white;
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
 }
 
+/*Individual interaction card styling*/
 .interaction-card {
   background: linear-gradient(145deg, #ffffff, #f0f0f0) !important;
   border: 1px solid #ddd !important;
@@ -696,49 +795,209 @@ button:active {
   padding: 20px !important;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
   margin: 20px 0 !important;
+  height: 400px; /* Set a fixed height for each interaction card */
+  display: flex;
+  flex-direction: column; /* Stack elements vertically */
+  justify-content: flex-start; /* Align items to the top */
+  overflow-y: auto; /* Allow scrolling if content overflows */
 }
 
+/*Adds spacing to card sections*/
 .card-header,
 .card-body,
 .card-footer {
   padding: 10px 0;
 }
+.card-body {
+  display: flex; /* Enable flexbox */
+  flex-direction: column; /* Stack items vertically */
+  justify-content: flex-start; /* Align items at the top */
+  align-items: center; /* Center horizontally */
+  height: 100%; /* Ensure full height */
+  text-align: center; /* Optional: Center-align text */
+  overflow-y: auto; /* Make the container scrollable if content overflows */
+  padding: 10px;
+}
 
+/*User image styling*/
 .user-img {
   width: 70px;
   height: 70px;
   border-radius: 100%;
   object-fit: cover;
   margin-right: 10px;
+  float: left;
 }
 
-.item-img {
+/*Inquiry image styling */
+.inq-img {
   max-width: 100%;
   height: auto;
   border-radius: 10px;
   margin-bottom: 20px;
 }
 
+/*Button spacing */
 .btn-primary,
 .delete-button {
   margin: 0 5px;
 }
 
+/*Makes text larger for name*/
 .name {
-  font-size: 25px;
+  font-size: 20px;
   margin-top: 0px;
   margin-bottom: 20px;
   text-align: left;
 }
 
+/*Medium text for username*/
 .username {
   font-size: 15px;
   margin-top: -20px;
   text-align: left;
 }
 
+/*Smallest text for other info*/
 .college {
   font-size: 10px;
   margin-top: -25px;
   text-align: left;
+}
+
+.return-date {
+  font-size: 10px;
+  margin-top: -25px;
+  font-weight: bold;
+  text-align: left;
+}
+
+
+/* Used to style a brief description of the page this is applied to */
+.page-description {
+  font-weight: bold;
+}
+
+/* Regarding responses, this ensures that image & replies are in the same line, evenly spaced */
+.response-image-and-reply {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+  padding-bottom: 20px;
+}
+
+/* Details size for the image a user inputs in a response (kept the same for the reply text box) */
+.item-img {
+  width: 48%; 
+  max-height: 200px; 
+  margin-right: 4%; 
+  object-fit: cover;
+}
+
+/* Makes reply box the same size as the image, and ensures that any text overflow is scrollable */
+.reply-box{
+  width: 48%; 
+  max-height: 200px;
+  overflow-y: auto; 
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  word-wrap: break-word; 
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* Ensures text starts at the top of the reply box */
+.reply-box p {
+  margin: 0;
+}
+
+/* Request box specific styles - using higher specificity to prevent conflicts */
+.interaction-card .request-box {
+  width: 48%;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  word-wrap: break-word;
+  box-sizing: border-box;
+  text-align: left;
+  cursor: pointer;
+  background: #f9f9f9;
+  transition: background-color 0.2s;
+  margin: 10px 0;
+}
+
+.interaction-card .request-box:hover {
+  background-color: #f0f0f0;
+}
+
+.interaction-card .request-preview {
+  margin: 0;
+  color: #223030;
+}
+
+.interaction-card .request-full {
+  display: none;
+}
+
+/* Enhanced modal styles with higher specificity */
+.request-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.request-modal .modal-content {
+  position: relative;
+  background: white;
+  margin: 15% auto;
+  padding: 20px;
+  width: 70%;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.request-modal .close {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.request-modal .close:hover {
+  color: #223030;
+}
+
+.request-modal #modalText {
+  margin-top: 10px;
+  line-height: 1.5;
+  color: #223030;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Custom scrollbar for modal text */
+.request-modal #modalText::-webkit-scrollbar {
+  width: 6px;
+}
+
+.request-modal #modalText::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
 }

@@ -10,25 +10,35 @@
 
 {% block main %}
 {% if session.get('user_id') %}
+ <!-- Logout section -->
     <div class="content">
+         <!-- Page title -->
         <h2 class="h2">Logout</h2>
+        <!-- Logout prompt -->
         <p>Are you sure you want to log out?</p>
+         <!-- Logout form -->
         <form action="{{ url_for('logout') }}" method="post">
             <button class="btn btn-primary" type="submit">Logout</button>
         </form>
     </div>
 {% else %}
+ <!-- Login section -->
     <div class="content">
         <h2 class="h2">Login</h2>
+         <!-- Login form -->
         <form action="{{ url_for('login') }}" method="post">
+            
+            <!-- Username input -->
             <div class="mb-3">
                 <input autocomplete="off" autofocus class="form-control mx-auto w-auto" 
                     name="username" placeholder="Username" type="text">
             </div>
+            <!-- Password input -->
             <div class="mb-3">
                 <input class="form-control mx-auto w-auto" name="password" 
                     placeholder="Password" type="password">
             </div>
+            <!-- Login button -->
             <button class="btn btn-primary" type="submit">Log In</button>
         </form>
     </div>
@@ -36,14 +46,17 @@
 {% endblock %}
 
 {% block navbar %}
+    <!-- Navigation bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
+             <!-- Brand/logo link -->
             <a class="navbar-brand" href="{{ url_for('index') }}">My App</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+               <!-- Navigation links -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">Home</a>
@@ -51,11 +64,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('feed') }}">Feed</a>
                     </li>
+                     <!-- Display login or logout link based on user session -->
                     {% if session.get('user_id') %}
+                     <!-- Logout link -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                     </li>
                     {% else %}
+                     <!-- Login link -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('login') }}">Login</a>
                     </li>
@@ -69,6 +85,7 @@
 {% block flash %}
 {% with messages = get_flashed_messages() %}
 {% if messages %}
+<!-- Display flash messages -->
 <div class="alert alert-success" role="alert">
     {% for message in messages %}
         {{ message }}

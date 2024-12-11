@@ -1,4 +1,3 @@
-<!-- Do we want the register/log in on both the nav bar and the home page?, also maybe we can extend layout if that works, but most of our stuff is inaccessible/goes bad without user_id :o-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,22 +9,27 @@
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
 </head>
 <body>
+   <!-- Header and navigation container -->
     <div class="header-nav-container">
+       <!-- Header and img title -->
         <div class="header-img-container">
             <div class="title-container">
                 <h1>Closet Collab</h1>
             </div>
         </div>
-        
+        <!-- Main nav bar -->
         <nav class="navbar navbar-container">
             <div class="container-fluid">
+               <!-- Home link -->
                 <a href="{{ url_for('index') }}" class="navbar-brand"></a>
                 <button class="navbar-toggler" id="navbar-toggler">
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
+                <!-- Nav menu items -->
                 <ul class="navbar-nav" id="navbarNav">
+                   <!-- Nav links -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">Home</a>
                     </li>
@@ -38,15 +42,18 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('profile') }}">Profile</a>
                     </li>
+                   <!-- Conditional authentication links -->
                     {% if not session.user_id %}
-                        <li class="nav-item">
+                        <!-- Show register and login for non-authenticated users -->
+                    <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('register') }}">Register</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('login') }}">Login</a>
                         </li>
                     {% else %}
-                        <li class="nav-item">
+                       <!-- Show logout for authenticated users -->
+                    <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                         </li>
                     {% endif %}
@@ -55,11 +62,14 @@
         </nav>
     </div>
 
+   <!-- Main content area w block -->
     <main class="content">
         {% block main %}
+        <!-- Default content for home page -->
         <h2 class="h2">Welcome to Closet Collab!</h2>
         <p>Have you ever needed a "stitch to wear?" Wanted a fun new dress to wear to formal but couldn't get it last minute? Join your fellow Yalies on the hottest new outfit sharing website: Closet Collab! Post inquiries in those last minute times of need to borrow from other Yalies, and respond when you are willing to provide! Explore your personal style, and fuel the creativity of others. We can't wait to have you.</p>
-        <div class="form-container text-center">
+       <!-- login and register buttons for non-authenticated users-->
+        <div class="form-container text-center">    
             {% if not session.user_id %}
                 <a href="{{ url_for('register') }}" class="btn">Join Now</a>
                 <a href="{{ url_for('login') }}" class="btn">Log In</a>
@@ -67,11 +77,12 @@
         </div>
         {% endblock %}
     </main>
-
+<!-- Site footer -->
     <footer class="footer">
         <p>&copy; 2024 Closet Collab. All rights reserved.</p>
     </footer>
-    
+
+ <!-- Custom javascript-->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

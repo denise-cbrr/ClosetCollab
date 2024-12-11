@@ -2,7 +2,7 @@ import sqlite3
 import os
 import hashlib
 from datetime import datetime
-from flask import Flask, flash, redirect, render_template, request, session, url_for, send_from_directory, Response, g
+from flask import Flask, redirect, render_template, request, session, url_for, send_from_directory, Response, g
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -221,7 +221,18 @@ def register():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
         name = request.form.get("name")
+
+        # Ensures name is not just spaces
+        check_name = request.form.get('name', '').strip()
+        if not check_name:
+            return apology("You cannot have a name composed of just spaces.", 400)
+
+        # Ensures username is not just spaces
         username = request.form.get("username")
+        check_username = request.form.get('username', '').strip()
+        if not check_username:
+            return apology("You cannot have a username composed of just spaces.", 400)
+
         email = request.form.get("email")
         college = request.form.get("college")
         password = generate_password_hash(request.form.get("password"))
@@ -278,6 +289,11 @@ def feed():
         # Processes form when user posts a new inquiry to feed
         userRequest = request.form.get("userRequest")
 
+        # Ensures user isn't just submitting white space as a inquiry request
+        check_request = request.form.get('userRequest', '').strip()
+        if not check_request:
+            return apology('Request cannot be empty or only spaces.', 400)
+
         # Creates a list from the style tags (the tags that the user selects to describe their inquiry)
         tags_list = request.form.getlist("style")   
         
@@ -323,20 +339,23 @@ def feed():
         size_filter = request.args.get("sizeFilter")
         type_filter = request.args.get("typeFilter")
         
-        # creates the filtered feed if at least one filter is used
+        # Creates the filtered feed if at least one filter is used
         if tags or size_filter or type_filter:
             
-            # if there is a size filter, add to the tags list
+            # If there is a size filter, add to the tags list
             if size_filter:
                 tags.append(size_filter)
                 
-            # if there is a type filter, add to the tags list
+            # If there is a type filter, add to the tags list
             if type_filter:
                 tags.append(type_filter)
                 
             tag_count = len(tags)
-
+            
+            # Sources: https://www.peterspython.com/en/blog/show-the-values-in-sqlalchemy-dynamic-filters and ChatGPT
+            # Consulted both sources to learn and implement dynamic filtering to accommodate for tags
             # Creates placeholders, e.g. ('?', '?', '?') where the number of '?' correspond to the number of tags
+            
             placeholders = ', '.join(['?'] * len(tags))
         
             db = get_db()
@@ -358,6 +377,7 @@ def feed():
             # Put parameters into the above query: tags will be placed into the placeholders and tag_count is used to specify the number of matching 
             results = db.execute(query, tags + [tag_count]).fetchall()
             return render_template("feed.html", results=results)
+        
         # Renders an unfiltered feed when no filters are used
         db = get_db()
 
@@ -396,9 +416,14 @@ def inquiry(inquiry_id):
         # When a response form is submitted
         if "replyResponse" in request.form:
             reply = request.form.get("replyResponse")
+            check_reply = request.form.get('replyResponse', '').strip()
             curUser = session["user_id"]
             lending_exp_date = request.form.get("lending_exp_date")
-            
+
+            # Ensure that user isn't submitting just white space into reply
+            if not check_reply:
+                return apology('Request cannot be empty or only spaces.', 400)
+
             # Validate backend
             if not reply:
                 return apology("Response description is required.", 400)
@@ -458,13 +483,14 @@ def inquiry(inquiry_id):
 
     # Retrieve information regarding the responses to the id of the inquiry the user is currently interacting with
     responses = db.execute(
-        "SELECT responses.*, users.username AS lender_username FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.inquiry_id = ? ORDER BY responses.time_published DESC", (inquiry_id, )).fetchall();
+        "SELECT responses.*, users.name, users.username, users.college, users.img_path AS profile FROM responses JOIN users ON responses.prosp_Lender_id = users.id WHERE responses.inquiry_id = ? ORDER BY responses.time_published DESC", (inquiry_id, )).fetchall();
 
     # Identify whether or not the inquiry has been accepted
     inquiry_accepted = db.execute("SELECT accepted FROM inquiries WHERE id = ?", (inquiry_id, )).fetchone()[0]
     db.commit()
 
     # Inquiry has been accepted: render accepted_inquiry.html and display lender's contact info
+    # This also prevents users from pressing the back arrow and resubmitting another (potentially) different response, and adding that to our database as well
     if inquiry_accepted == 'yes':
         lenderId = db.execute("SELECT lender_id FROM interactions WHERE inquiry_id = ?", (inquiry_id, )).fetchone()[0]
         lender_info = get_lender_info(lenderId)
@@ -566,9 +592,9 @@ def interactions():
     borrow_interactions = db.execute(
     """
         SELECT
-            inquiries.request AS request, inquiries.exp_date AS exp_date, interactions.*, 
-            responses.lending_exp_date AS lending_exp_date, responses.img_path AS item_img, 
-            users.name AS name, users.username AS username, users.img_path AS user_img
+            inquiries.request, inquiries.exp_date, interactions.*, 
+            responses.lending_exp_date, responses.img_path AS item_img, 
+            users.name, users.username, users.img_path AS user_img, users.college
             FROM inquiries 
             JOIN interactions ON inquiries.id = interactions.inquiry_id
             JOIN responses ON inquiries.id = responses.inquiry_id
@@ -579,9 +605,9 @@ def interactions():
     # Retrieve all interactions where the current user is lending an item to someone else    
     lender_interactions = db.execute(
         """SELECT
-            inquiries.request AS request, interactions.*, 
-            responses.img_path AS img_path, responses.lending_exp_date AS lending_exp_date,
-            users.name AS name, users.username AS username, users.img_path AS user_img
+            inquiries.request, interactions.*, 
+            responses.img_path, responses.lending_exp_date,
+            users.name, users.username, users.img_path, users.college
             FROM inquiries 
             JOIN interactions ON inquiries.id = interactions.inquiry_id
             JOIN responses ON inquiries.id = responses.inquiry_id
